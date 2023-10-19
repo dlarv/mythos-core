@@ -1,5 +1,14 @@
 pub mod dirs;
-
+pub fn clean_cli_args() -> Vec<String> {
+    return std::env::args().into_iter().skip(1).flat_map(|x| {
+        if x.starts_with("--") || !x.starts_with("-") {
+            vec![x]
+        }
+        else {
+            x.chars().into_iter().skip(1).map(|x| format!("-{}", x)).collect()
+        }
+    }).collect();
+}
 #[cfg(test)]
 mod tests {
     use super::*;
