@@ -1,5 +1,6 @@
 pub mod dirs;
 pub mod cli;
+pub mod conf;
 
 #[cfg(test)]
 mod tests {

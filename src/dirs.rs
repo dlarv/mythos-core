@@ -60,11 +60,9 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> Box<PathBuf> {
     let home_dir = env::var("HOME").unwrap_or("/".into());
     path_name = path_name.replace("~", &home_dir).replace("$HOME", &home_dir);
 
-    let path: &Path;
+    let path = Path::new(&path_name);
 
     // If only asking for core, return
-    path = Path::new(&path_name);
-
     if util_name.to_lowercase() == "core" || util_name == "" {
         return Box::new(path.to_owned());
     }
@@ -93,7 +91,6 @@ mod tests {
 
     // Create environment to run tests
     fn setup() {
-        let root = env::current_dir().unwrap().join("tests");
         env::set_var("MYTHOS_ALIAS_DIR", "tests/alias");
         env::set_var("MYTHOS_BIN_DIR", "tests/bin");
         env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
