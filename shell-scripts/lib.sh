@@ -3,7 +3,7 @@
 
 function create_dir() {
 	read -r input <"${1:-/dev/stdin}"
-	mkdir "$input" 2|&1> /dev/null
+	mkdir "$input" 
 	echo "$input"
 }
 
