@@ -41,6 +41,15 @@ impl MythosConfig {
         };
     }
 
+    pub fn get_subsection(&self, key: &str) -> Option<MythosConfig> {
+        return match &self.0[key] {
+            Value::Table(val) => {
+                Some(MythosConfig(val.to_owned()))
+            },
+            _ => None
+        };
+    }
+
     pub fn get_string(&self, key: &str, default_val: &str) -> String {
         return match &self.0[key] {
             Value::String(val) => val.to_owned(),
@@ -90,8 +99,6 @@ impl MythosConfig {
             _ => default_val
         };
     }
-
-
 }
 fn try_get_file(path: &str) -> Option<PathBuf> {
     match clean_and_validate(*dirs::get_path(dirs::MythosDir::LocalConfig, path)) {
