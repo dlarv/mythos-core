@@ -1,5 +1,5 @@
-use toml::{Table, Value, value::Datetime};
-use std::{path::PathBuf, any::type_name};
+use toml::{Table, Value};
+use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
 use crate::dirs;
 
