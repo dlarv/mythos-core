@@ -42,8 +42,8 @@ impl MythosConfig {
     }
 
     pub fn get_subsection(&self, key: &str) -> Option<MythosConfig> {
-        return match &self.0[key] {
-            Value::Table(val) => {
+        return match &self.0.get(key) {
+            Some(Value::Table(val)) => {
                 Some(MythosConfig(val.to_owned()))
             },
             _ => None
@@ -51,8 +51,8 @@ impl MythosConfig {
     }
 
     pub fn get_string(&self, key: &str, default_val: &str) -> String {
-        return match &self.0[key] {
-            Value::String(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::String(val)) => val.to_owned(),
             _ => default_val.to_string()
         };
     }
@@ -64,8 +64,8 @@ impl MythosConfig {
     }
 
     pub fn get_integer(&self, key: &str, default_val: i64) -> i64 {
-        return match &self.0[key] {
-            Value::Integer(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::Integer(val)) => val.to_owned(),
             _ => default_val
         };
     }
@@ -77,8 +77,8 @@ impl MythosConfig {
     }
 
     pub fn get_float(&self, key: &str, default_val: f64) -> f64 {
-        return match &self.0[key] {
-            Value::Float(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::Float(val)) => val.to_owned(),
             _ => default_val
         };
     }
@@ -89,8 +89,8 @@ impl MythosConfig {
         };
     }
     pub fn get_boolean(&self, key: &str, default_val: bool) -> bool {
-        return match &self.0[key] {
-            Value::Boolean(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::Boolean(val)) => val.to_owned(),
             _ => default_val
         };
     }
@@ -102,8 +102,8 @@ impl MythosConfig {
     }
 
     pub fn get_datetime(&self, key: &str, default_val: &str) -> String{
-        return match &self.0[key] {
-            Value::Datetime(val) => val.to_string(),
+        return match &self.0.get(key) {
+            Some(Value::Datetime(val)) => val.to_string(),
             _ => default_val.to_string()
         };
     }
@@ -118,8 +118,8 @@ impl MythosConfig {
      * these three methods cannot due to their datatypes.
      */
     pub fn get_array(&self, key: &str, default_val: Vec<Value>) -> Vec<Value> {
-        return match &self.0[key] {
-            Value::Array(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::Array(val)) => val.to_owned(),
             _ => default_val
         };
     }
@@ -130,8 +130,8 @@ impl MythosConfig {
         };
     }
     pub fn get_table(&self, key: &str, default_val: Table) -> Table {
-        return match &self.0[key] {
-            Value::Table(val) => val.to_owned(),
+        return match &self.0.get(key) {
+            Some(Value::Table(val)) => val.to_owned(),
             _ => default_val
         };
     }
@@ -184,7 +184,6 @@ fn clean_and_validate(path: PathBuf) -> Option<PathBuf> {
     }
     return None;
 }
-
 
 #[cfg(test)]
 pub mod tests {
