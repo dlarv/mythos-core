@@ -15,7 +15,9 @@ fn clean_args<I>(args: I) -> Vec<String> where I: Iterator<Item = String> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(warnings)]
     use super::*;
+
     #[test]
     fn clean_cli_args() {
         assert_eq!(

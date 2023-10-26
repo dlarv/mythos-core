@@ -15,15 +15,36 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::env;
+use duct::cmd;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum MythosDir { Config, Data, Bin, Lib, Alias, LocalData, LocalConfig }
+
+// Returns home diretory of $SUDO_USER
+pub fn get_home() -> Option<Box<PathBuf>> {
+    // Get $SUDO_USER or $HOME
+    let user = match env::var("SUDO_USER") {
+        Ok(user) => user,
+        Err(_) => match env::var("HOME") {
+            Ok(home) => return Some(Box::new(PathBuf::from(home))),
+            Err(_) => return None
+        }
+    };
+    let output = match cmd!("getent", "passwd", &user)
+                    .pipe(cmd!("cut", "-d:", "-f6"))
+                    .stdout_capture() 
+                    .read() {
+        Ok(output) => output,
+        Err(_) => return None 
+    };
+
+    return Some(Box::new(PathBuf::from(output)));
+}
 
 // Returns MYTHOS_DIR/util_name 
 // Path can point to a file or dir
 pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<Box<PathBuf>> {
     let path = get_path(dir_name, util_name);
-
     if path.exists() {
         return Some(path);
     }
@@ -87,8 +108,11 @@ fn get_default_dir(dir_name: MythosDir) -> String {
 mod tests {
     #![allow(warnings)]
     use std::fs::remove_dir;
-    use super::*;
+    use std::sync::{Arc, Mutex};
+    use crate::cli::clean_cli_args;
 
+    use super::*;
+    
     // Create environment to run tests
     fn setup() {
         env::set_var("MYTHOS_ALIAS_DIR", "tests/alias");
@@ -101,9 +125,13 @@ mod tests {
     }
 
     #[test]
-    fn test_get_path() {
-        setup();
-        assert_eq!(*get_path(MythosDir::Config, "arachne"), Path::new(&"tests/config/arachne".to_string()));
+    fn test_get_home() {
+        let actual = PathBuf::from(env::var("HOME").unwrap());
+        env::set_var("HOME", "noname");
+        env::set_var("SUDO_USER", env::var("USER").unwrap());
+        let dir = *get_home().unwrap();
+        assert_eq!(dir, actual);
+        env::set_var("HOME", actual);
     }
 
     #[test]
@@ -116,39 +144,41 @@ mod tests {
         assert_eq!(*super::get_path(MythosDir::Lib, "".into()), Path::new(&"tests/lib".to_string()));
         assert_eq!(*super::get_path(MythosDir::LocalData, "".into()), Path::new(&"tests/ldata".to_string()));
         assert_eq!(*super::get_path(MythosDir::LocalConfig, "".into()), Path::new(&"tests/lconfig".to_string()));
+        
     }
-
-    // Testing get_dir()
-    // util_name has a file/dir that exists
+    #[test]
+    fn test_get_path() {
+        setup();
+        assert_eq!(*get_path(MythosDir::Config, "arachne"), Path::new(&"tests/config/arachne".to_string()));
+        
+    }
     #[test]
     fn get_dir_that_exists() {
         setup();
         let path = get_dir(MythosDir::Config, "arachne");
         assert_eq!(path, Some(Box::new(PathBuf::from(&"tests/config/arachne"))));
+        
     }
-
-    // Testing get_dir()
-    // util_name does not have a file/dir that exists
     #[test]
     fn get_dir_that_dne() {
         setup();
         let path = get_dir(MythosDir::Config, "nonameutil");
         assert_eq!(path, None);
+        
     }
-
-
     #[test]
     fn make_dir_that_exists() {
         setup();
         let path = make_dir(MythosDir::Config, "arachne").unwrap();
         assert_eq!(path, Box::new(PathBuf::from("tests/config/arachne")));
     }
-
     #[test]
     fn make_dir_that_dne() {
         setup();
         let path = make_dir(MythosDir::Bin, "mythos-test-file").unwrap();
         assert_eq!(path, Box::new(PathBuf::from("tests/bin/mythos-test-file")));
         remove_dir(*path);
+        
     }
+
 }

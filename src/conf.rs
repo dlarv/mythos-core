@@ -187,6 +187,7 @@ fn clean_and_validate(path: PathBuf) -> Option<PathBuf> {
 
 #[cfg(test)]
 pub mod tests {
+    #![allow(warnings)]
     use super::*;
     fn setup() {
         std::env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
