@@ -1,0 +1,5 @@
+# This is a comment
+include/this/1
+dont/include include/this/2 dontincludethis
+
+this line is a syntax error

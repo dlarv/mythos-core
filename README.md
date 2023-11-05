@@ -5,4 +5,47 @@ Mythos is a collection of command line utils, intended to fulfill a range of dif
 The individual utils are mostly projects geared toward learning and filling specific (potentially niche) needs I have. These range from wrappers for commands (plutonian-shores) to system navigation and management (arachne). 
 
 ## What is Mythos-Core?
-Mythos-Core is a library shared between different mythos-utils. As of now, it only contains `dirs`, which gives utils the mythos directories (like the aforementioned `~/.config/mythos`). If I find other functionality repeating itself across the project, I will add them to this repo.
+Mythos-Core is a library shared between different mythos-utils. 
+
+### Modules 
+- cli: Provides functions used to parse command line args. This is mostly `clean_cli_args`, which turns args into an easier to read format.
+- conf: Provides functionality for reading values from config files.
+- dirs: Provides utils with mythos directories.
+
+## Charon
+Charon is a utility to assist with installing mythos-utils from their source code. It saves a list of files/directories which were created into a `charon` file. This file can then be used to remove deprecated files and uninstall utilities. 
+
+Charon looks for a file with the extension `.charon`, which contains a list of local files and their destinations.
+
+### Charon File Syntax
+[target] [destination] [opts]
+
+[target]
+- relative/path/to/file 
+- rel/path/to/dir/*
+
+[destination]
+- /abs/path/to/directory 
+- $HOME/path/to/dir
+- ~/path/to/dir
+- MYTHOS_DIR/path/to/dir, where MYTHOS_DIR is one of the following:
+    - A, ALIAS
+    - B, BIN
+    - C, CONFIG 
+    - D, DATA,
+    - LB, LIB,
+    - LC, LCONFIG, LOCALCONFIG
+    - LD, LDATA, LOCALDATA
+NOTE: In the final option, if the path DNE, it will be created.
+
+[opts]
+- `e` Strip extension
+- `E` Don't strip extension
+- `o` Overwrite if exists
+- `O` No overwrite 
+- `_` Copy files that start with an underscore
+- `.` Copy dotfiles
+- `###` Where `#` is an octal digit, representing file permissions
+NOTE: opts can be in any order, however `###` must be contiguous.
+Opts are 'false' by default.
+
