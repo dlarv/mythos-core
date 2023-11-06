@@ -9,7 +9,6 @@ use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 
-
 fn main() {
     let mut do_dry_run = false;
     let mut do_remove_orphans = true;
@@ -251,7 +250,6 @@ mod tests {
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let actions = parse_install_file(&mut contents, path);
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test3").unwrap());
-        execute_actions(actions, true, "test", &mut old_files);
-
+        execute_actions(actions, true, "test3", &mut old_files);
     }
 }

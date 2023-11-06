@@ -2,6 +2,7 @@ pub mod install;
 use std::path::PathBuf;
 use mythos_core::dirs;
 
+#[derive(Debug)]
 pub enum InstallAction {
     File(InstallFile),
     Dir(InstallDir)
@@ -25,17 +26,16 @@ pub struct Opts {
     pub perms: u32,
     pub overwrite: bool,
 }
-
 pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
-    return match shortcut {
-        "$A" | "$ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
-        "$B" | "$BIN" => dirs::get_dir(dirs::MythosDir::Bin, ""),
-        "$C" | "$CONFIG" => dirs::get_dir(dirs::MythosDir::Config, ""),
-        "$D" | "$DATA" => dirs::get_dir(dirs::MythosDir::Data, ""),
-        "$LB" | "$LIB" => dirs::get_dir(dirs::MythosDir::Lib, ""),
-        "$LC" | "$LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, ""),
-        "$LD" | "$LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, ""),
-        "$HOME" | "~" => dirs::get_home(),
+    return match shortcut.trim_start_matches("$"){
+        "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
+        "B" | "BIN" => dirs::get_dir(dirs::MythosDir::Bin, ""),
+        "C" | "CONFIG" => dirs::get_dir(dirs::MythosDir::Config, ""),
+        "D" | "DATA" => dirs::get_dir(dirs::MythosDir::Data, ""),
+        "LB" | "LIB" => dirs::get_dir(dirs::MythosDir::Lib, ""),
+        "LC" | "LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, ""),
+        "LD" | "LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, ""),
+        "HOME" | "~" => dirs::get_home(),
         _ => None
     }
 }
@@ -53,12 +53,10 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
         let mut tokens = line.trim().split(" ");
         let target = tokens.next().expect(&format!("{err_msg} Expected a path to source code file."));
 
-        // Line is a comment, empty, or uninstall command
-        if target.starts_with("#") || target.len() <= 1 { continue; }
-
         // Line contains dirs to install 
         if target.starts_with("@") {
             for dir in tokens {
+                println!("{dir}");
                 let res = match expand_mythos_shortcut(dir) {
                     Some(path) => path,
                     None => panic!("{err_msg} Could not read dir to create")
@@ -67,6 +65,10 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
             }
             continue;
         }
+
+        // Line is a comment, empty, or uninstall command
+        if target.starts_with("#") || target.len() <= 1 { continue; }
+
 
         let (target_dir, target_name) = match install::parse_target(target, &path) {
             Ok(data) => data,
