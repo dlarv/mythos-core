@@ -18,6 +18,7 @@ Charon is a utility to assist with installing mythos-utils from their source cod
 Charon looks for a file with the extension `.charon`, which contains a list of local files and their destinations.
 
 ### Charon File Syntax
+#### Install 
 [target] [destination] [opts]
 
 [target]
@@ -49,3 +50,13 @@ NOTE: In the final option, if the path DNE, it will be created.
 NOTE: opts can be in any order, however `###` must be contiguous.
 Opts are 'false' by default.
 
+#### Uninstall
+Charon can check the .charon file output from the last install command and remove any files that weren't included in the current install.
+e.g. 
+    In version 1.0 a file named `file1` was included.
+    In version 1.1, this file is no longer needed. It is excluded from the charon install file.
+    Charon can check the compare outputs of v1.0 and v1.1. 
+    It will see that `file1` is now 'orphaned' and will remove it.
+
+Charon can read the install syntax as an uninstall file. Alternatively, the absolute paths for each file installed are listed, separated by newlines. 
+This file is saved at $MYTHOS_DATA_DIR/charon/$UTIL_NAME.charon. It is not recommended to alter the uninstall file. 

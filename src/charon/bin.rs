@@ -42,6 +42,7 @@ fn main() {
             return;
         },
     };
+
     let util_name = match source_path.file_stem() {
         Some(name) => name.to_string_lossy(),
         None => "".into()
@@ -49,10 +50,11 @@ fn main() {
     
 
     let contents = &mut String::new();
-    if let Err(msg) = read_charon_file(&mut charon_file) {
+    if let Err(msg) = read_charon_file(&mut charon_file, contents) {
         eprintln!("CHARON (Fatal Error): {msg}");
         return;
     }
+    
 
     // Read old files installed for this util
     let mut old_files = match &mut read_uninstall_file(&util_name) {
@@ -105,6 +107,7 @@ fn load_charon_file(source_path: &PathBuf) -> Result<(PathBuf, File), String> {
         Err(_) => return Err(format!("Could not read directory: '{:?}'", source_path)),
     };
 
+
     // Search for .charon file
     for dir_entry in contents {
         let entry = match dir_entry {
@@ -123,8 +126,7 @@ fn load_charon_file(source_path: &PathBuf) -> Result<(PathBuf, File), String> {
     }
     return Err("Could not find .charon file".into());
 }
-fn read_charon_file(charon_file: &mut File) -> Result<String, String> {
-    let contents = &mut String::new();
+fn read_charon_file(charon_file: &mut File, contents: &mut String) -> Result<String, String> {
     if let Err(err) = charon_file.read_to_string(contents) {
         return Err(format!("Could not read .charon file.\n{}", err.to_string()));
     }
@@ -210,7 +212,7 @@ mod tests {
     fn read_install_file() {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test1.charon")).unwrap();
-        let mut contents = super::read_charon_file(&mut file).unwrap();
+        let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let actions = parse_install_file(&mut contents, path);
         execute_actions(actions, true, "test", &mut Vec::new());
 
@@ -223,7 +225,7 @@ mod tests {
     fn read_uninstall_file() {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/dest/charon_file/charon/test_uninstall.charon")).unwrap();
-        let mut contents = super::read_charon_file(&mut file).unwrap();
+        let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let paths = parse_uninstall_file(&mut contents);
         assert_eq!(
             paths, 
@@ -234,7 +236,7 @@ mod tests {
     fn check_old_files() {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test2.charon")).unwrap();
-        let mut contents = super::read_charon_file(&mut file).unwrap();
+        let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let actions = parse_install_file(&mut contents, path);
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test2").unwrap());
 

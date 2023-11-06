@@ -78,7 +78,10 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> Box<PathBuf> {
 
     // Get base path
     let mut path_name = env::var(env_var).unwrap_or(get_default_dir(dir_name));
-    let home_dir = env::var("HOME").unwrap_or("/".into());
+    let home_dir: String = match get_home() {
+        Some(path) => path.to_string_lossy().to_string(),
+        None => "/".to_string()
+    };
     path_name = path_name.replace("~", &home_dir).replace("$HOME", &home_dir);
 
     let path = Path::new(&path_name);

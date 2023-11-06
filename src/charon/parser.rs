@@ -112,7 +112,6 @@ pub fn parse_dest(dest: &str) -> Result<PathBuf, String> {
         Some(data) => data,
         None => (dest, "")
     };
-
     // Expand vars into MYTHOS_DIRS, etc
     let res =  match top_level {
         "$A" | "$ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
@@ -223,9 +222,13 @@ impl InstallAction {
         for target in self.get_targets() {
             // Copy 
             let filename = target.file_name().unwrap();
-            log.push(format!("{:?}\n\t# ", self.dest_dir.join(filename)));
+            let dest = self.dest_dir.join(filename);
+            log.push(format!("{:?}\n\t# ", dest));
 
             let mut msg = String::new();
+            old_files.retain(|file| { 
+                *file != dest 
+            });
             if self.dest_dir.join(filename).exists() {
                 if !self.opts.overwrite {
                     log.push("Did not copy: File exists && !overwrite\n".into());
@@ -234,14 +237,10 @@ impl InstallAction {
                 msg += "File was overwritten.";
             }
 
-            old_files.retain(|file| { 
-                println!("{:?} && {:?}", file, target);
-                *file != target
-            });
             if !dry_run {
                 target.metadata().unwrap().permissions().set_mode(self.opts.perms);
-                if let Err(err) = std::fs::copy(target, &self.dest_dir) {
-                    log.push(format!("# Did not copy: Error = {}\n", err.to_string()));
+                if let Err(err) = std::fs::copy(&target, dest) {
+                    log.push(format!("Did not copy. Error: {}\n", err.to_string()));
                     continue;
                 }
             }
