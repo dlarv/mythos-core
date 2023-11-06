@@ -1,6 +1,5 @@
 use crate::parser::*;
 use std::{path::PathBuf, os::unix::prelude::PermissionsExt};
-use mythos_core::dirs;
 use glob::glob;
 
 // Structs
@@ -31,28 +30,16 @@ pub fn parse_dest(dest: &str) -> Result<PathBuf, String> {
         None => (dest, "")
     };
     // Expand vars into MYTHOS_DIRS, etc
-    let res =  match top_level {
-        "$A" | "$ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
-        "$B" | "$BIN" => dirs::get_dir(dirs::MythosDir::Bin, ""),
-        "$C" | "$CONFIG" => dirs::get_dir(dirs::MythosDir::Config, ""),
-        "$D" | "$DATA" => dirs::get_dir(dirs::MythosDir::Data, ""),
-        "$LB" | "$LIB" => dirs::get_dir(dirs::MythosDir::Lib, ""),
-        "$LC" | "$LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, ""),
-        "$LD" | "$LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, ""),
-        "$HOME" | "~" => dirs::get_home(),
-        _ => {
+    let mut root = match expand_mythos_shortcut(top_level) {
+        Some(path) => path,
+        None => {
             let tmp = PathBuf::from(dest);
             if tmp.exists() {
-                Some(Box::new(tmp)) 
+                tmp 
             } else {
                 return Err("Could not parse destination".into());
             }
         }
-    };
-
-    let mut root = match res {
-        Some(root) => *root,
-        None => return Err("Could not get mythos-dirs".into())
     };
 
     if path.len() > 0 {
@@ -65,7 +52,6 @@ pub fn parse_opts(opts: Option<&str>) -> Result<Opts, String> {
         strip_ext: false,
         perms: 0,
         overwrite: false,
-        create_path: false,
         copy_underscore_files: false,
         copy_dot_files: false,
     };
@@ -85,8 +71,6 @@ pub fn parse_opts(opts: Option<&str>) -> Result<Opts, String> {
             'E' => output.strip_ext = false,
             'o' => output.overwrite = true,
             'O' => output.overwrite = false,
-            'p' => output.create_path = true,
-            'P' => output.create_path = false,
             '_' => output.copy_underscore_files = true,
             '.' => output.copy_dot_files = true,
             _ => return Err(format!("Unknown opt: '{opt}'"))
@@ -96,8 +80,11 @@ pub fn parse_opts(opts: Option<&str>) -> Result<Opts, String> {
 }
 
 impl InstallAction {
-    pub fn execute(self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
-        todo!()
+    pub fn execute(&self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
+        return match self {
+            InstallAction::File(file) => file.execute(dry_run, old_files),
+            InstallAction::Dir(dir) => dir.execute(dry_run, old_files)
+        };
     }
 }
 impl InstallFile {
@@ -150,8 +137,6 @@ impl InstallFile {
 
             let mut msg = String::new();
             old_files.retain(|file| { 
-                println!("{file:?}");
-                println!("{dest:?}");
                 *file != dest 
             });
             if self.dest_dir.join(filename).exists() {
@@ -175,4 +160,16 @@ impl InstallFile {
     }
 }
 impl InstallDir {
+    pub fn execute(&self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
+        old_files.retain(|file| { 
+            *file != self.dir
+        });
+
+        if !dry_run {
+            if let Err(err) = std::fs::create_dir(self.dir.clone()) {
+                return Err(format!("CHARON (Error): Could not create dir {:?}. Error: {}", self.dir, err.to_string()));
+            }
+        }
+        return Ok(format!("{:?}\n\t# ", self.dir)); 
+    }
 }

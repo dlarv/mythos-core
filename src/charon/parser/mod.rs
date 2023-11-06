@@ -24,7 +24,6 @@ pub struct Opts {
     pub copy_dot_files: bool,
     pub perms: u32,
     pub overwrite: bool,
-    pub create_path: bool,
 }
 
 pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
@@ -40,7 +39,6 @@ pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
         _ => None
     }
 }
-
 pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAction> {
     /*!
      * Turn .charon file into list of actions 
@@ -61,6 +59,11 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
         // Line contains dirs to install 
         if target.starts_with("@") {
             for dir in tokens {
+                let res = match expand_mythos_shortcut(dir) {
+                    Some(path) => path,
+                    None => panic!("{err_msg} Could not read dir to create")
+                };
+                actions.push(InstallAction::Dir(InstallDir { dir: res }));
             }
             continue;
         }

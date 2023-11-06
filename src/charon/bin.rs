@@ -131,7 +131,7 @@ fn read_charon_file(charon_file: &mut File, contents: &mut String) -> Result<Str
     return Ok(contents.to_string());
 }
 fn read_uninstall_file(util_name: &str) -> Option<String> {
-    let charon_dir = *match dirs::get_dir(dirs::MythosDir::Data, "charon") {
+    let charon_dir = match dirs::get_dir(dirs::MythosDir::Data, "charon") {
         Some(dir) => dir,
         None => {
             eprintln!("CHARON (Warning): Could not find charon directory at '$MYTHOS_DATA_DIR/charon/'");
@@ -164,7 +164,6 @@ fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, 
         log_path_root.join(format!("{util_name}.charon"))
     };
 
-    // TODO: read charon file if it already exists, to run a comparison.
     let mut writer = BufWriter::new(File::create(log_path).expect("Could not open charon file"));
 
     for action in actions {
@@ -206,7 +205,7 @@ mod tests {
         env::set_var("MYTHOS_LOCAL_DATA_DIR", path);
     }
 
-//    #[test]
+   #[test]
     fn read_install_file() {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test1.charon")).unwrap();
@@ -243,5 +242,16 @@ mod tests {
             old_files, 
             vec![PathBuf::from("this/file/should/be/here")]
         );
+    }
+
+    #[test]
+    fn create_new_dirs() {
+        setup();
+        let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test3.charon")).unwrap();
+        let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
+        let actions = parse_install_file(&mut contents, path);
+        let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test3").unwrap());
+        execute_actions(actions, true, "test", &mut old_files);
+
     }
 }
