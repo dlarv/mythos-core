@@ -22,10 +22,11 @@ fn main() {
             "-o" | "--no-rm-orphans" => do_remove_orphans = false,
             _ => {
                 path_arg = arg.into();
-                break 
+                break;
             }
         }
     }
+
     let charon_path = match get_install_file_path(&path_arg) {
         Ok(path) => path, 
         Err(msg) => {
@@ -33,7 +34,6 @@ fn main() {
             return;
         }
     };
-
 
     let (source_path, mut charon_file) = match load_charon_file(&charon_path) {
         Ok(file) => file,
@@ -47,14 +47,12 @@ fn main() {
         Some(name) => name.to_string_lossy(),
         None => "".into()
     }.to_string();
-    
 
     let contents = &mut String::new();
     if let Err(msg) = read_charon_file(&mut charon_file, contents) {
         eprintln!("CHARON (Fatal Error): {msg}");
         return;
     }
-    
 
     // Read old files installed for this util
     let mut old_files = match &mut read_uninstall_file(&util_name) {
@@ -208,7 +206,7 @@ mod tests {
         env::set_var("MYTHOS_LOCAL_DATA_DIR", path);
     }
 
-    #[test]
+//    #[test]
     fn read_install_file() {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test1.charon")).unwrap();

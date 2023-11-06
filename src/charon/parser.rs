@@ -227,6 +227,8 @@ impl InstallAction {
 
             let mut msg = String::new();
             old_files.retain(|file| { 
+                println!("{file:?}");
+                println!("{dest:?}");
                 *file != dest 
             });
             if self.dest_dir.join(filename).exists() {

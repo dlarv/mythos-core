@@ -44,7 +44,11 @@ pub fn get_home() -> Option<Box<PathBuf>> {
 // Returns MYTHOS_DIR/util_name 
 // Path can point to a file or dir
 pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<Box<PathBuf>> {
-    let path = get_path(dir_name, util_name);
+    let mut path = get_path(dir_name, util_name);
+    if path.exists() {
+        return Some(path);
+    }
+    path = get_path(dir_name, "");
     if path.exists() {
         return Some(path);
     }
@@ -166,8 +170,7 @@ mod tests {
     fn get_dir_that_dne() {
         setup();
         let path = get_dir(MythosDir::Config, "nonameutil");
-        assert_eq!(path, None);
-        
+        assert_eq!(path, Some(Box::from(PathBuf::from("tests/config"))));
     }
     #[test]
     fn make_dir_that_exists() {
@@ -183,5 +186,4 @@ mod tests {
         remove_dir(*path);
         
     }
-
 }

@@ -1,3 +1,3 @@
 # This is a comment
 this/file/should/be/here
-tests/charon/target/test2/exclude.this.file
+test2/exclude.this.file
