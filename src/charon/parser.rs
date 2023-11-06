@@ -2,22 +2,23 @@ use std::{path::PathBuf, os::unix::prelude::PermissionsExt};
 use mythos_core::dirs;
 use glob::glob;
 
-pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAction> {
+pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallFile> {
     /*!
      * Turn .charon file into list of actions 
      * Format: 
      * target_dir dest_dir opts 
      * target_dir dest_dir
      */
-    let mut actions: Vec<InstallAction> = Vec::new();
+    let mut actions: Vec<InstallFile> = Vec::new();
 
     for (count, line) in contents.split("\n").enumerate() {
-        let err_msg = format!("CHARON (Fatal Error on line {count}):");
+        let err_msg = format!("CHARON (Fatal Error on line {}):",count + 1);
         let mut tokens = line.trim().split(" ");
-
-        // Parse target file
         let target = tokens.next().expect(&format!("{err_msg} Expected a path to source code file."));
-        if target.starts_with("#") || target.len() == 0 { continue; }
+
+        // Line is a comment, empty, or uninstall command
+        if target.starts_with("#") || target.len() <= 1 { continue; }
+
         let (target_dir, target_name) = match parse_target(target, &path) {
             Ok(data) => data,
             Err(msg) => panic!("{err_msg} {msg}")
@@ -35,7 +36,7 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
             Err(msg) => panic!("{err_msg} {msg}")
         };
 
-        actions.push(InstallAction::new(target_dir, &target_name, dest_dir, opts));
+        actions.push(InstallFile::new(target_dir, &target_name, dest_dir, opts));
     }
     return actions;
 }
@@ -70,7 +71,7 @@ pub fn parse_uninstall_file(contents: &mut String) -> Vec<PathBuf> {
 
 // Structs
 #[derive(Debug)]
-pub struct InstallAction {
+pub struct InstallFile {
     target_dir: PathBuf,
     target_name: String,
     dest_dir: PathBuf,
@@ -177,9 +178,9 @@ pub fn parse_opts(opts: Option<&str>) -> Result<Opts, String> {
     return Ok(output);
 }
 
-impl InstallAction {
-    pub fn new(target_dir: PathBuf, target_name: &str, dest_dir: PathBuf, opts: Opts) -> InstallAction {
-        return InstallAction {
+impl InstallFile {
+    pub fn new(target_dir: PathBuf, target_name: &str, dest_dir: PathBuf, opts: Opts) -> InstallFile {
+        return InstallFile {
             target_dir,
             target_name: target_name.to_string(), 
             dest_dir,

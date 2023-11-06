@@ -19,6 +19,7 @@ Charon looks for a file with the extension `.charon`, which contains a list of l
 
 ### Charon File Syntax
 #### Install 
+@ $DIR_CODES_TO_CREATE
 [target] [destination] [opts]
 
 [target]

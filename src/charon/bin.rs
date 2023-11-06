@@ -59,7 +59,7 @@ fn main() {
         Some(file) => parse_uninstall_file(file),
         None => Vec::new()
     };
-
+    
     let actions = parse_install_file(contents, source_path);
     execute_actions(actions, do_dry_run, &util_name, &mut old_files); 
     
@@ -153,7 +153,7 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
 /**
  * dry_run: bool -> if true, create charon_file, but don't make any changes
  */
-fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
+fn execute_actions(actions: Vec<InstallFile>, dry_run: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
     let err_msg = "CHARON (Fatal Error):";
     let log_path_root = dirs::get_dir(dirs::MythosDir::Data, "charon").expect(
         &format!("{err_msg} Could not get mythos data dir")
