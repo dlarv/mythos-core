@@ -1,92 +1,9 @@
+use crate::parser::*;
 use std::{path::PathBuf, os::unix::prelude::PermissionsExt};
 use mythos_core::dirs;
 use glob::glob;
 
-pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallFile> {
-    /*!
-     * Turn .charon file into list of actions 
-     * Format: 
-     * target_dir dest_dir opts 
-     * target_dir dest_dir
-     */
-    let mut actions: Vec<InstallFile> = Vec::new();
-
-    for (count, line) in contents.split("\n").enumerate() {
-        let err_msg = format!("CHARON (Fatal Error on line {}):",count + 1);
-        let mut tokens = line.trim().split(" ");
-        let target = tokens.next().expect(&format!("{err_msg} Expected a path to source code file."));
-
-        // Line is a comment, empty, or uninstall command
-        if target.starts_with("#") || target.len() <= 1 { continue; }
-
-        let (target_dir, target_name) = match parse_target(target, &path) {
-            Ok(data) => data,
-            Err(msg) => panic!("{err_msg} {msg}")
-        };
-
-        // Parse destination file
-        let dest = tokens.next().expect(&format!("{err_msg} Expected a path to destination directory."));
-        let dest_dir = match parse_dest(dest) {
-            Ok(data) => data,
-            Err(msg) => panic!("{err_msg} {msg}")
-        };
-
-        let opts = match parse_opts(tokens.next()) {
-            Ok(opts) => opts,
-            Err(msg) => panic!("{err_msg} {msg}")
-        };
-
-        actions.push(InstallFile::new(target_dir, &target_name, dest_dir, opts));
-    }
-    return actions;
-}
-pub fn parse_uninstall_file(contents: &mut String) -> Vec<PathBuf> {
-    /*!
-     * Parses charon install file into list of paths to remove.
-     * Can read install charon files.
-     * Format:
-     * rm_dir
-     * ignore rm_dir 
-     * ignore rm_dir ignore 
-     */
-    let mut targets: Vec<PathBuf> = Vec::new();
-    for line in contents.split("\n") {
-        let tokens: Vec<&str> = line.trim().split(" ").collect();
-
-        if tokens.len() == 0 || tokens[0].starts_with("#") || tokens[0].len() == 0 { continue; }
-
-        let path = PathBuf::from(match tokens.len() {
-            1 => tokens[0],
-            2 | 3 => tokens[1],
-            _ => {
-                eprintln!("CHARON (Error): Expected 1-3 items per line inside charon uninstall file, found {}. Skipping...", tokens.len());
-                continue
-            }
-        });
-
-        targets.push(path);
-    }
-    return targets;
-}
-
 // Structs
-#[derive(Debug)]
-pub struct InstallFile {
-    target_dir: PathBuf,
-    target_name: String,
-    dest_dir: PathBuf,
-    opts: Opts, 
-}
-#[derive(Debug, Copy, Clone)]
-pub struct Opts {
-    pub strip_ext: bool,
-    pub copy_underscore_files: bool,
-    pub copy_dot_files: bool,
-    pub perms: u32,
-    pub overwrite: bool,
-    pub create_path: bool,
-}
-
 pub fn parse_target(target: &str, charon_path: &PathBuf) -> Result<(PathBuf, String), String> {
     let (root, name) = match target.rsplit_once("/") {
         Some(data) => data,
@@ -178,6 +95,11 @@ pub fn parse_opts(opts: Option<&str>) -> Result<Opts, String> {
     return Ok(output);
 }
 
+impl InstallAction {
+    pub fn execute(self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
+        todo!()
+    }
+}
 impl InstallFile {
     pub fn new(target_dir: PathBuf, target_name: &str, dest_dir: PathBuf, opts: Opts) -> InstallFile {
         return InstallFile {
@@ -251,4 +173,6 @@ impl InstallFile {
         }
         return Ok(log.join("").replace("\"", ""));
     }
+}
+impl InstallDir {
 }

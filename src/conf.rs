@@ -143,11 +143,11 @@ impl MythosConfig {
     }
 }
 fn try_get_file(path: &str) -> Option<PathBuf> {
-    match clean_and_validate(*dirs::get_path(dirs::MythosDir::LocalConfig, path)) {
+    match clean_and_validate(dirs::get_path(dirs::MythosDir::LocalConfig, path)) {
         Some(path) => return Some(path),
         None => ()
     };
-    match clean_and_validate(*dirs::get_path(dirs::MythosDir::Config, path)) {
+    match clean_and_validate(dirs::get_path(dirs::MythosDir::Config, path)) {
         Some(path) => return Some(path),
         None => return None 
     };
@@ -197,13 +197,13 @@ pub mod tests {
     pub fn get_file_with_implicit_ext() {
         setup();
         let root = dirs::get_path(dirs::MythosDir::Config, "config_tester");
-        assert_eq!(clean_and_validate(*root), Some(PathBuf::from("tests/config/config_tester.conf")));
+        assert_eq!(clean_and_validate(root), Some(PathBuf::from("tests/config/config_tester.conf")));
     }
     #[test]
     pub fn get_file_with_no_ext() {
         setup();
         let root = dirs::get_path(dirs::MythosDir::Config, "arachne");
-        assert_eq!(clean_and_validate(*root), Some(PathBuf::from("tests/config/arachne")));
+        assert_eq!(clean_and_validate(root), Some(PathBuf::from("tests/config/arachne")));
     }
     #[test]
     pub fn defaults_to_local_config() {
