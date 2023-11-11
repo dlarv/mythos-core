@@ -83,7 +83,7 @@ impl InstallAction {
     pub fn execute(&self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
         return match self {
             InstallAction::File(file) => file.execute(dry_run, old_files),
-            InstallAction::Dir(dir) => dir.execute(dry_run, old_files)
+            InstallAction::Dir(dir) => dir.execute(old_files)
         };
     }
 }
@@ -160,26 +160,12 @@ impl InstallFile {
     }
 }
 impl InstallDir {
-    pub fn execute(&self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
-        let mut msg = format!("{:?}\n\t# ", self.dir);
+    pub fn execute(&self, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
 
         old_files.retain(|file| { 
             *file != self.dir
         });
 
-        if self.dir.exists() && self.dir.is_dir() {
-            msg += "Did not create: Directory exists.";
-        }
-        else if self.dir.is_file() {
-            msg += "Did not create: File exists with that name.";
-        }
-        else if !dry_run {
-            if let Err(err) = std::fs::create_dir(self.dir.clone()) {
-                return Err(format!("CHARON (Error): Could not create dir {:?}. Error: {}", self.dir, err.to_string()));
-            }
-            msg += "Created directory!";
-        }
-        msg += "\n";
-        return Ok(msg.replace("\"", "")); 
+        return Ok(self.msg.clone()); 
     }
 }

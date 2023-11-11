@@ -1,4 +1,4 @@
-/home/hyrum/.config/mythos
-	# Did not create: Directory exists.
-/home/hyrum/coding/shell/mythos/mythos-core/tests/charon/dest/data
-	# Did not create: Directory exists.
+/home/hyrum/.config/mythos/test3
+	# Created directory!
+/home/hyrum/coding/shell/mythos/mythos-core/tests/charon/dest/data/test3
+	# Created directory!

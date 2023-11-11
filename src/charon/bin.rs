@@ -60,7 +60,7 @@ fn main() {
         None => Vec::new()
     };
     
-    let actions = parse_install_file(contents, source_path);
+    let actions = parse_install_file(contents, source_path, &util_name, do_dry_run);
     execute_actions(actions, do_dry_run, &util_name, &mut old_files); 
     
     if do_dry_run || !do_remove_orphans {
@@ -212,7 +212,7 @@ mod tests {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test1.charon")).unwrap();
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
-        let actions = parse_install_file(&mut contents, path);
+        let actions = parse_install_file(&mut contents, path, "", true);
         execute_actions(actions, true, "test", &mut Vec::new());
 
         // NOTE: Its easier to check this manually at the moment
@@ -236,7 +236,7 @@ mod tests {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test2.charon")).unwrap();
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
-        let actions = parse_install_file(&mut contents, path);
+        let actions = parse_install_file(&mut contents, path, "", true);
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test2").unwrap());
 
         execute_actions(actions, true, "test", &mut old_files);
@@ -251,7 +251,7 @@ mod tests {
         setup();
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test3.charon")).unwrap();
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
-        let actions = parse_install_file(&mut contents, path);
+        let actions = parse_install_file(&mut contents, path, "test3", true);
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test3").unwrap());
         execute_actions(actions, true, "test3", &mut old_files);
     }

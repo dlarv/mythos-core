@@ -17,6 +17,7 @@ pub struct InstallFile {
 #[derive(Debug)]
 pub struct InstallDir {
     dir: PathBuf,
+    msg: String,
 }
 #[derive(Debug, Copy, Clone)]
 pub struct Opts {
@@ -40,7 +41,30 @@ pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
         _ => None
     }
 }
-pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAction> {
+pub fn create_util_dir(root: PathBuf, util_name: &str, dry_run: bool) -> Result<InstallDir, String> {
+    let path = root.join(util_name);
+    let mut msg = format!("{:?}\n\t# ", path);
+
+    if path.exists() && path.is_dir() {
+        msg += "Did not create: Directory exists.";
+    }
+    else if path.is_file() {
+        msg += "Did not create: File exists with that name.";
+    }
+    else {
+        if !dry_run {
+            if let Err(err) = std::fs::create_dir(path.clone()) {
+                return Err(format!("CHARON (Error): Could not create dir {:?}. Error: {}", path, err.to_string()));
+            }
+        }
+        msg += "Created directory!";
+    }
+    msg += "\n";
+    msg = msg.replace("\"", ""); 
+    return Ok(InstallDir { dir: path, msg }); 
+}
+// `@ dirs` statements parsed in this function b/c otherwise dest tokens will not expand properly.
+pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str, dry_run: bool) -> Vec<InstallAction> {
     /*!
      * Turn .charon file into list of actions 
      * Format: 
@@ -61,7 +85,10 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
                     Some(path) => path,
                     None => panic!("{err_msg} Could not read dir to create")
                 };
-                actions.push(InstallAction::Dir(InstallDir { dir: res }));
+                match create_util_dir(res, util_name, dry_run) {
+                    Ok(path) => actions.push(InstallAction::Dir(path)),
+                    Err(msg) => panic!("{err_msg} {msg}")
+                }
             }
             continue;
         }
@@ -119,3 +146,4 @@ pub fn parse_uninstall_file(contents: &mut String) -> Vec<PathBuf> {
     }
     return targets;
 }
+
