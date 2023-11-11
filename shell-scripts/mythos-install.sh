@@ -61,6 +61,9 @@ echo "$MYTHOS_CHARON_DIR" | create_dir >> "$CHARON_DATA"
 echo "$MYTHOS_ALIAS_DIR" | copy_overwrite "mythos-vars.sh" >> "$CHARON_DATA"
 echo "$MYTHOS_BIN_DIR" | copy_overwrite "mythos-uninstall" >> "$CHARON_DATA"
 echo "$MYTHOS_BIN_DIR" | copy_overwrite "print-mythos-dirs" >> "$CHARON_DATA"
+echo "$MYTHOS_BIN_DIR" | copy_overwrite "../target/debug/charon" >> "$CHARON_DATA"
+
+chmod +x "$MYTHOS_BIN_DIR/charon"
 
 # Uninstall deprecated/etc files
 items_to_remove=()

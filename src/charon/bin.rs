@@ -12,6 +12,7 @@ pub const UTIL_ID: &str = "CHARON";
 fn main() {
     logger::set_id(UTIL_ID);
     let mut do_dry_run = false;
+    let mut be_quiet = false;
     let mut do_remove_orphans = true;
     let mut path_arg = String::new();
 
@@ -20,6 +21,18 @@ fn main() {
         match arg.as_str() {
             "-n" | "--dryrun" => do_dry_run = true,
             "-o" | "--no-rm-orphans" => do_remove_orphans = false,
+            "-q" | "--quiet" => be_quiet = true,
+            "-h" | "--help" => {
+                // TODO: Add syntax hints here
+                println!("Charon: Mythos-util installer.");
+                println!("charon [opts] [path/to/util.charon]");
+                println!("Opts:");
+                println!("-h | --help\t\tDisplay this menu.");
+                println!("-n | --dryrun\t\tRun command but don't make any changes.");
+                println!("-q | --quiet\t\tDon't display each item being installed.");
+                println!("-o | --no-rm-orphans\t\tDon't remove files previously installed for this util, that are not included in the charon file.");
+                return;
+            },
             _ => {
                 path_arg = arg.into();
                 break;
@@ -61,7 +74,7 @@ fn main() {
     };
     
     let actions = parse_install_file(contents, source_path, &util_name, do_dry_run);
-    execute_actions(actions, do_dry_run, &util_name, &mut old_files); 
+    execute_actions(actions, do_dry_run, be_quiet, &util_name, &mut old_files); 
     
     if do_dry_run || !do_remove_orphans {
         return;
@@ -139,10 +152,14 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
         }
     };
 
-    let path = charon_dir.join(format!("{}.charon", util_name));
+    let mut path = charon_dir.join(format!("{util_name}.charon"));
     if !path.exists() {
-        return None;
+        path = charon_dir.join(format!("{util_name}.dryrun.charon"));
+        if !path.exists() {
+            return None;
+        }
     }
+
     let mut file = File::open(path).expect("CHARON (Fatal Error): Could not open charon uninstall file"); 
     let contents = &mut String::new();
     file.read_to_string(contents).expect("CHARON (Fatal Error): Could not open charon uninstall file");
@@ -153,7 +170,7 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
 /**
  * dry_run: bool -> if true, create charon_file, but don't make any changes
  */
-fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
+fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, quiet: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
     println!("{}", logger::get_id());
     let err_msg = "CHARON (Fatal Error):";
     let log_path_root = dirs::get_dir(dirs::MythosDir::Data, "charon").expect(
@@ -175,7 +192,9 @@ fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, 
                 continue;
             }
         };
-        println!("{msg}");
+        if !quiet {
+            println!("{msg}");
+        }
         writer.write(&msg.into_bytes()).expect("Could not write to charon file");
     }
     writer.flush().expect("Could not write to charon file");
@@ -183,6 +202,8 @@ fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, 
 #[cfg(test)]
 mod tests {
     #![allow(warnings)]
+    use std::{panic, ffi::OsString};
+
     use super::*;
 
     fn setup() {
@@ -213,7 +234,7 @@ mod tests {
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test1.charon")).unwrap();
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let actions = parse_install_file(&mut contents, path, "", true);
-        execute_actions(actions, true, "test", &mut Vec::new());
+        execute_actions(actions, true, true, "test", &mut Vec::new());
 
         // NOTE: Its easier to check this manually at the moment
         // let mut charon_file = File::open(PathBuf::from("tests/charon/dest/charon_file/charon/test.dryrun.charon")).unwrap(); 
@@ -239,7 +260,7 @@ mod tests {
         let actions = parse_install_file(&mut contents, path, "", true);
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test2").unwrap());
 
-        execute_actions(actions, true, "test", &mut old_files);
+        execute_actions(actions, true, true, "test", &mut old_files);
         assert_eq!(
             old_files, 
             vec![PathBuf::from("this/file/should/be/here")]
@@ -252,7 +273,14 @@ mod tests {
         let (path, mut file) = load_charon_file(&PathBuf::from("tests/charon/target/test3.charon")).unwrap();
         let mut contents = super::read_charon_file(&mut file, &mut "".into()).unwrap();
         let actions = parse_install_file(&mut contents, path, "test3", true);
+
+        let p = match &actions[2] {
+            InstallAction::File(file) => file,
+            InstallAction::Dir(_) => panic!("")
+        };
+        assert_eq!(p.get_dest().file_name(), Some(OsString::from("test3").as_os_str()));
+
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test3").unwrap());
-        execute_actions(actions, true, "test3", &mut old_files);
+        execute_actions(actions, true, true, "test3", &mut old_files);
     }
 }

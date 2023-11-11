@@ -24,13 +24,13 @@ pub fn parse_target(target: &str, charon_path: &PathBuf) -> Result<(PathBuf, Str
     }
     return Ok((path, name.into()));
 }
-pub fn parse_dest(dest: &str) -> Result<PathBuf, String> {
+pub fn parse_dest(dest: &str, util_name: &str) -> Result<PathBuf, String> {
     let (top_level, path) = match dest.trim().split_once("/") {
         Some(data) => data,
         None => (dest, "")
     };
     // Expand vars into MYTHOS_DIRS, etc
-    let mut root = match expand_mythos_shortcut(top_level) {
+    let mut root = match expand_mythos_shortcut(top_level, util_name) {
         Some(path) => path,
         None => {
             let tmp = PathBuf::from(dest);
@@ -167,5 +167,8 @@ impl InstallDir {
         });
 
         return Ok(self.msg.clone()); 
+    }
+    pub fn get_dir(&self) -> PathBuf {
+        return self.dir.clone();
     }
 }

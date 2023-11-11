@@ -28,15 +28,15 @@ pub struct Opts {
     pub overwrite: bool,
 }
 // TODO: use util_name
-pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
+pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf> {
     return match shortcut.trim_start_matches("$"){
-        "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
-        "B" | "BIN" => dirs::get_dir(dirs::MythosDir::Bin, ""),
-        "C" | "CONFIG" => dirs::get_dir(dirs::MythosDir::Config, ""),
-        "D" | "DATA" => dirs::get_dir(dirs::MythosDir::Data, ""),
-        "LB" | "LIB" => dirs::get_dir(dirs::MythosDir::Lib, ""),
-        "LC" | "LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, ""),
-        "LD" | "LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, ""),
+        "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, util_name),
+        "B" | "BIN" => dirs::get_dir(dirs::MythosDir::Bin, util_name),
+        "C" | "CONFIG" => dirs::get_dir(dirs::MythosDir::Config, util_name),
+        "D" | "DATA" => dirs::get_dir(dirs::MythosDir::Data, util_name),
+        "LB" | "LIB" => dirs::get_dir(dirs::MythosDir::Lib, util_name),
+        "LC" | "LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, util_name),
+        "LD" | "LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, util_name),
         "HOME" | "~" => dirs::get_home(),
         _ => None
     }
@@ -81,7 +81,7 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str,
         // Line contains dirs to install 
         if target.starts_with("@") {
             for dir in tokens {
-                let res = match expand_mythos_shortcut(dir) {
+                let res = match expand_mythos_shortcut(dir, util_name) {
                     Some(path) => path,
                     None => panic!("{err_msg} Could not read dir to create")
                 };
@@ -104,7 +104,7 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str,
 
         // Parse destination file
         let dest = tokens.next().expect(&format!("{err_msg} Expected a path to destination directory."));
-        let dest_dir = match install::parse_dest(dest) {
+        let dest_dir = match install::parse_dest(dest, util_name) {
             Ok(data) => data,
             Err(msg) => panic!("{err_msg} {msg}")
         };
