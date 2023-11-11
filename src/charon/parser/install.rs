@@ -1,5 +1,5 @@
 use crate::parser::*;
-use std::{path::PathBuf, os::unix::prelude::PermissionsExt};
+use std::{path::PathBuf, os::unix::prelude::PermissionsExt, fs};
 use glob::glob;
 
 // Structs
@@ -161,15 +161,25 @@ impl InstallFile {
 }
 impl InstallDir {
     pub fn execute(&self, dry_run: bool, old_files: &mut Vec<PathBuf>) -> Result<String, String> {
+        let mut msg = format!("{:?}\n\t# ", self.dir);
+
         old_files.retain(|file| { 
             *file != self.dir
         });
 
-        if !dry_run {
+        if self.dir.exists() && self.dir.is_dir() {
+            msg += "Did not create: Directory exists.";
+        }
+        else if self.dir.is_file() {
+            msg += "Did not create: File exists with that name.";
+        }
+        else if !dry_run {
             if let Err(err) = std::fs::create_dir(self.dir.clone()) {
                 return Err(format!("CHARON (Error): Could not create dir {:?}. Error: {}", self.dir, err.to_string()));
             }
+            msg += "Created directory!";
         }
-        return Ok(format!("{:?}\n\t# ", self.dir)); 
+        msg += "\n";
+        return Ok(msg.replace("\"", "")); 
     }
 }

@@ -1,15 +1,16 @@
 pub mod parser;
 use parser::*;
-use mythos_core::dirs;
+use mythos_core::{dirs, logger};
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::BufWriter;
-use std::io::Read;
-use std::io::Write;
+use std::io::{BufWriter, Read, Write};
 use std::path::PathBuf;
 
+pub const UTIL_ID: &str = "CHARON";
+
 fn main() {
+    logger::set_id(UTIL_ID);
     let mut do_dry_run = false;
     let mut do_remove_orphans = true;
     let mut path_arg = String::new();
@@ -153,6 +154,7 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
  * dry_run: bool -> if true, create charon_file, but don't make any changes
  */
 fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
+    println!("{}", logger::get_id());
     let err_msg = "CHARON (Fatal Error):";
     let log_path_root = dirs::get_dir(dirs::MythosDir::Data, "charon").expect(
         &format!("{err_msg} Could not get mythos data dir")
@@ -202,6 +204,7 @@ mod tests {
         path = root.clone();
         path.push("data");
         env::set_var("MYTHOS_LOCAL_DATA_DIR", path);
+        logger::set_id(UTIL_ID);
     }
 
    #[test]

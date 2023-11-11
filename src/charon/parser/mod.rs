@@ -26,6 +26,7 @@ pub struct Opts {
     pub perms: u32,
     pub overwrite: bool,
 }
+// TODO: use util_name
 pub fn expand_mythos_shortcut(shortcut: &str) -> Option<PathBuf> {
     return match shortcut.trim_start_matches("$"){
         "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, ""),
@@ -56,7 +57,6 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf) -> Vec<InstallAc
         // Line contains dirs to install 
         if target.starts_with("@") {
             for dir in tokens {
-                println!("{dir}");
                 let res = match expand_mythos_shortcut(dir) {
                     Some(path) => path,
                     None => panic!("{err_msg} Could not read dir to create")
