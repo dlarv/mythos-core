@@ -1,5 +1,5 @@
 pub mod install;
-use std::path::PathBuf;
+use std::{path::PathBuf, ffi::OsString};
 use mythos_core::dirs;
 
 #[derive(Debug)]
@@ -45,7 +45,7 @@ pub fn create_util_dir(root: PathBuf, util_name: &str, dry_run: bool) -> Result<
     let path = root.join(util_name);
     let mut msg = format!("{:?}\n\t# ", path);
 
-    if path.exists() && path.is_dir() {
+    if path.exists() && path.is_dir() {// && root.file_name() != Some(OsString::from(util_name).as_os_str()) {
         msg += "Did not create: Directory exists.";
     }
     else if path.is_file() {
@@ -81,7 +81,7 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str,
         // Line contains dirs to install 
         if target.starts_with("@") {
             for dir in tokens {
-                let res = match expand_mythos_shortcut(dir, util_name) {
+                let res = match expand_mythos_shortcut(dir, "") {
                     Some(path) => path,
                     None => panic!("{err_msg} Could not read dir to create")
                 };

@@ -45,7 +45,7 @@ done <"mythos-vars.sh"
 
 # Charon remembers every dir/file installed by mythos 
 # Used to delete files that are no longer necessary
-CHARON_DATA="charon"
+CHARON_DATA=".charon"
 MYTHOS_CHARON_DIR="$MYTHOS_DATA_DIR/charon"
 source "lib.sh"
 
@@ -61,7 +61,7 @@ echo "$MYTHOS_CHARON_DIR" | create_dir >> "$CHARON_DATA"
 echo "$MYTHOS_ALIAS_DIR" | copy_overwrite "mythos-vars.sh" >> "$CHARON_DATA"
 echo "$MYTHOS_BIN_DIR" | copy_overwrite "mythos-uninstall" >> "$CHARON_DATA"
 echo "$MYTHOS_BIN_DIR" | copy_overwrite "print-mythos-dirs" >> "$CHARON_DATA"
-echo "$MYTHOS_BIN_DIR" | copy_overwrite "../target/debug/charon" >> "$CHARON_DATA"
+echo "$MYTHOS_BIN_DIR" | copy_overwrite "charon" >> "$CHARON_DATA"
 
 chmod +x "$MYTHOS_BIN_DIR/charon"
 

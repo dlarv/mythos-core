@@ -279,8 +279,9 @@ mod tests {
             InstallAction::Dir(_) => panic!("")
         };
         assert_eq!(p.get_dest().file_name(), Some(OsString::from("test3").as_os_str()));
+        // assert!(p.get_dest().to_string_lossy().ends_with("test3/test3"));
 
         let mut old_files = parse_uninstall_file(&mut super::read_uninstall_file("test3").unwrap());
-        execute_actions(actions, true, true, "test3", &mut old_files);
+        execute_actions(actions, true, false, "test3", &mut old_files);
     }
 }
