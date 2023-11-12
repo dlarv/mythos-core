@@ -193,7 +193,7 @@ fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, quiet: bool, util
             }
         };
         if !quiet {
-            println!("{msg}");
+            println!("{}", msg.trim_end().to_string());
         }
         writer.write(&msg.into_bytes()).expect("Could not write to charon file");
     }

@@ -96,7 +96,6 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str,
         // Line is a comment, empty, or uninstall command
         if target.starts_with("#") || target.len() <= 1 { continue; }
 
-
         let (target_dir, target_name) = match install::parse_target(target, &path) {
             Ok(data) => data,
             Err(msg) => panic!("{err_msg} {msg}")
