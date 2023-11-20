@@ -1,6 +1,8 @@
 pub mod parser;
 use parser::*;
-use mythos_core::{dirs, logger};
+use mythos_core::{dirs, logger::*, fatalmsg};
+use mythos_core::{printinfo,printwarn,printerror,printfatal};
+
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -10,7 +12,7 @@ use std::path::PathBuf;
 pub const UTIL_ID: &str = "CHARON";
 
 fn main() {
-    logger::set_id(UTIL_ID);
+    set_logger_id(UTIL_ID);
     let mut do_dry_run = false;
     let mut be_quiet = false;
     let mut do_remove_orphans = true;
@@ -43,16 +45,14 @@ fn main() {
     let charon_path = match get_install_file_path(&path_arg) {
         Ok(path) => path, 
         Err(msg) => {
-            eprintln!("CHARON (Fatal Error): {msg}");
-            return;
+            printfatal!("{msg}");
         }
     };
 
     let (source_path, mut charon_file) = match load_charon_file(&charon_path) {
         Ok(file) => file,
         Err(msg) => {
-            eprintln!("CHARON (Fatal Error): {msg}");
-            return;
+            printfatal!("{msg}");
         },
     };
 
@@ -63,8 +63,7 @@ fn main() {
 
     let contents = &mut String::new();
     if let Err(msg) = read_charon_file(&mut charon_file, contents) {
-        eprintln!("CHARON (Fatal Error): {msg}");
-        return;
+        printfatal!("{msg}");
     }
 
     // Read old files installed for this util
@@ -82,10 +81,10 @@ fn main() {
 
     for file in old_files {
         if let Err(msg) = fs::remove_file(&file) {
-            eprintln!("CHARON (Error): Could not remove file {:?}\n{}", file, msg);
+            printwarn!("Could not remove file {file:?}\n{msg}");
         }
         else {
-            println!("CHARON (INFO): Removed orphan {:?}", file);
+            printinfo!("Removed orphan {file:?}");
         }
     }
 }
@@ -147,7 +146,7 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
     let charon_dir = match dirs::get_dir(dirs::MythosDir::Data, "charon") {
         Some(dir) => dir,
         None => {
-            eprintln!("CHARON (Warning): Could not find charon directory at '$MYTHOS_DATA_DIR/charon/'");
+            printwarn!("Could not find charon directory at '$MYTHOS_DATA_DIR/charon/'");
             return None;
         }
     };
@@ -171,11 +170,10 @@ fn read_uninstall_file(util_name: &str) -> Option<String> {
  * dry_run: bool -> if true, create charon_file, but don't make any changes
  */
 fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, quiet: bool, util_name: &str, old_files: &mut Vec<PathBuf>) {
-    println!("{}", logger::get_id());
-    let err_msg = "CHARON (Fatal Error):";
     let log_path_root = dirs::get_dir(dirs::MythosDir::Data, "charon").expect(
-        &format!("{err_msg} Could not get mythos data dir")
+        &fatalmsg!("Could not get mythos data dir")
     );
+
     let log_path = if dry_run {
         log_path_root.join(format!("{util_name}.dryrun.charon"))
     } else {
@@ -195,9 +193,9 @@ fn execute_actions(actions: Vec<InstallAction>, dry_run: bool, quiet: bool, util
         if !quiet {
             println!("{}", msg.trim_end().to_string());
         }
-        writer.write(&msg.into_bytes()).expect("Could not write to charon file");
+        writer.write(&msg.into_bytes()).expect(&fatalmsg!("Could not write to charon file"));
     }
-    writer.flush().expect("Could not write to charon file");
+    writer.flush().expect(&fatalmsg!("Could not write to charon file"));
 }
 #[cfg(test)]
 mod tests {
@@ -225,7 +223,7 @@ mod tests {
         path = root.clone();
         path.push("data");
         env::set_var("MYTHOS_LOCAL_DATA_DIR", path);
-        logger::set_id(UTIL_ID);
+        set_logger_id(UTIL_ID);
     }
 
    #[test]

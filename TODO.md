@@ -5,3 +5,5 @@ Error/etc messages given by mythos-utils have the same format. A module to mytho
 - [ ] Charon syntax for changing owner of file to user
 - [x] Charon syntax for creating dirs
 E.g. whether to make "$MYTHOS_DIR/$UTIL_NAME/file" or "$MYTHOS_DIR/file"
+- [ ] Charon syntax for optional install "?"
+If target file dne, continue execution

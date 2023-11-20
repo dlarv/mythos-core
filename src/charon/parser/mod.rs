@@ -1,5 +1,5 @@
 pub mod install;
-use std::{path::PathBuf, ffi::OsString};
+use std::path::PathBuf;
 use mythos_core::dirs;
 
 #[derive(Debug)]
@@ -27,7 +27,6 @@ pub struct Opts {
     pub perms: u32,
     pub overwrite: bool,
 }
-// TODO: use util_name
 pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf> {
     return match shortcut.trim_start_matches("$"){
         "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, util_name),

@@ -48,6 +48,7 @@ NOTE: In the final option, if the path DNE, it will be created.
 - `_` Copy files that start with an underscore
 - `.` Copy dotfiles
 - `###` Where `#` is an octal digit, representing file permissions
+
 NOTE: opts can be in any order, however `###` must be contiguous.
 Opts are 'false' by default.
 
