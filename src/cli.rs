@@ -1,3 +1,5 @@
+use std::io::{stdin, stdout, Write};
+
 pub fn clean_cli_args() -> Vec<String> {
     return clean_args(std::env::args().into_iter().skip(1));
 }
@@ -11,6 +13,14 @@ fn clean_args<I>(args: I) -> Vec<String> where I: Iterator<Item = String> {
             x.chars().into_iter().skip(1).map(|x| format!("-{}", x)).collect()
         }
     }).collect();
+}
+pub fn get_cli_input(msg: &str) -> String {
+    print!("{}", msg);
+    let _ = stdout().flush();
+    let mut input = String::new();
+
+    stdin().read_line(&mut input).expect("Could not read user input");
+    return input.trim().into();
 }
 
 #[cfg(test)]

@@ -26,7 +26,8 @@ macro_rules! printerror {
 macro_rules! printfatal {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        panic!("{} (Fatal Error): {}", get_logger_id(), res);
+        eprintln!("{} (Fatal Error): {}", get_logger_id(), res);
+        std::process::exit(1);
     }}
 }
 #[macro_export]
