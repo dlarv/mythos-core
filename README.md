@@ -62,3 +62,12 @@ e.g.
 
 Charon can read the install syntax as an uninstall file. Alternatively, the absolute paths for each file installed are listed, separated by newlines. 
 This file is saved at $MYTHOS_DATA_DIR/charon/$UTIL_NAME.charon. It is not recommended to alter the uninstall file. 
+
+## General Utils 
+These are tools intended to be used from the command line.
+
+mythos-dirs [dir]
+Echos MYTHOS_DIR vars.
+
+mythos-conf [util-name] [keys]
+Read config value from [util-name].

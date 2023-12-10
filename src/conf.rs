@@ -62,6 +62,24 @@ impl MythosConfig {
             _ => None
         };
     }
+    pub fn force_get_string(&self, key: &str) -> Option<String> {
+        return match &self.0.get(key) {
+            Some(Value::String(val)) => Some(val.into()),
+            Some(Value::Float(val)) => Some(format!("{val}")),
+            Some(Value::Integer(val)) => Some(format!("{val}")),
+            Some(Value::Boolean(val)) => Some(format!("{val}")),
+            Some(Value::Datetime(val)) => Some(format!("{val}")),
+            Some(Value::Array(val)) => {
+                let arr: String = val.into_iter().map(|x| x.to_string()).collect::<Vec<String>>().join(" ");
+                Some(arr)
+            },
+            Some(Value::Table(val)) => {
+                let tab: String = val.into_iter().map(|x| format!("{}:{}", x.0, x.1)).collect::<Vec<String>>().join(" ");
+                Some(tab)
+            },
+            None => todo!(),
+        }
+    }
 
     pub fn get_integer(&self, key: &str, default_val: i64) -> i64 {
         return match &self.0.get(key) {
