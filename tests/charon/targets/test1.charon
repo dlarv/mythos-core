@@ -1,0 +1,23 @@
+# This is a comment
+# Target arg variations
+top_level_file $C/
+test1/file1 $C/solo
+
+# Ignore files matching "_*|.*" by default
+test1/* $C/no.or_
+test1/* $C/no_ .
+test1/* $C/no. _
+
+# Dest variations
+# test1/file1 $HOME/downloads
+# test1/file1 ~/downloads
+# test1/file1 /bin
+
+# Opts
+test1.5/file.extension $A E
+test1.5/noextension.ext $A e
+test1.5/nooverwrite $A O
+test1.5/overwrite $A o
+test1.5/all_perm $A 777
+test1.5/no_perm $A 000
+

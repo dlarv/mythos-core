@@ -1,0 +1,12 @@
+# Syntax errors
+test0/_ $C
+test0/. $C
+test0 $C
+test0 
+test-1 $C
+
+# Opts Syntax errors
+test0/file $A 888
+test0/file $A E7O77
+test0/file $A xX
+test0/file $A abc
