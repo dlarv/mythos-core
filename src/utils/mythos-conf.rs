@@ -4,7 +4,7 @@ use std::env;
 fn main() {
     let mut args = env::args().skip(1);
     if let Some(util_name) = args.next() {
-        get_value(&util_name, args.map(|x| x).collect());
+        println!("{data}", data = get_value(&util_name, args.map(|x| x).collect()));
     }
 }
 
