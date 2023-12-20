@@ -11,7 +11,7 @@ function main() {
 			dir="$(grep "MYTHOS_"$mythos_dir"_DIR" "data/mythos-vars.sh" | sed -E 's/.*=//')"
 			dir="${dir/\$HOME/$user_home}"
 			dir="${dir//\"/}"
-			echo "$dir"
+			dir="$(sed -E 's/\s*//g' <<< "$dir")"
 		fi
 
 		if [ ! -d "$dir" ]; then 
