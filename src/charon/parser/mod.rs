@@ -85,7 +85,9 @@ pub fn parse_install_file(contents: &mut String, path: PathBuf, util_name: &str,
                     None => panic!("{err_msg} Could not read dir to create")
                 };
                 match create_util_dir(res, util_name, dry_run) {
-                    Ok(path) => actions.push(InstallAction::Dir(path)),
+                    Ok(path) => {
+                        actions.push(InstallAction::Dir(path))
+                    },
                     Err(msg) => panic!("{err_msg} {msg}")
                 }
             }

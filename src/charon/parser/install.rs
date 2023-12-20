@@ -103,13 +103,8 @@ impl InstallFile {
             let target_glob = glob(data).expect(&format!("Could not parse target: '{:?}'", target));
             return target_glob.into_iter()
                 .filter(|t| t.is_ok())
-                .map(|t| { 
-                    let mut path = PathBuf::from(t.unwrap());
-                    if self.opts.strip_ext {
-                        path.set_extension("");
-                    }
-                    return path;
-                }).filter(|t| {
+                .map(|t|  PathBuf::from(t.unwrap()))
+                .filter(|t| {
                     let name = match t.file_name() {
                         Some(name) => name,
                         None => return false
@@ -132,7 +127,10 @@ impl InstallFile {
         for target in self.get_targets() {
             // Copy 
             let filename = target.file_name().unwrap();
-            let dest = self.dest_dir.join(filename);
+            let mut dest = self.dest_dir.join(filename);
+            if self.opts.strip_ext {
+                dest.set_extension("");
+            }
             log.push(format!("{:?}\n\t# ", dest));
 
             let mut msg = String::new();
