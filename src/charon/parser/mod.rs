@@ -44,7 +44,6 @@ pub fn create_util_dir(root: PathBuf, util_name: &str, dry_run: bool) -> Result<
     let path = root.join(util_name);
     let mut msg = format!("{:?}\n\t# ", path);
 
-    println!("here");
     if path.exists() && path.is_dir() {// && root.file_name() != Some(OsString::from(util_name).as_os_str()) {
         msg += "Did not create: Directory exists.";
     }
