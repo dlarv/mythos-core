@@ -66,8 +66,20 @@ This file is saved at $MYTHOS_DATA_DIR/charon/$UTIL_NAME.charon. It is not recom
 ## General Utils 
 These are tools intended to be used from the command line.
 
-mythos-dirs [dir]
-Echos MYTHOS_DIR vars.
+### mythos-args
+A bash interface for mythos_core::cli::clean_cli_args(). 
+e.g. cmd -abc --def xyz => cmd -a -b -c --def xyz
 
-mythos-conf [util-name] [keys]
-Read config value from [util-name].
+### mythos-conf
+A bash interface for mythos_core::conf.
+
+### mythos-dirs
+Allows utils to cleanly find valid MYTHOS_DIRS and their subdirs.
+
+The primary use case is as follows. If a UTIL must read its config file, which can exist at
+- $MYTHOS_LOCAL_CONFIG_DIR/UTIL/
+- $MYTHOS_LOCAL_CONFIG_DIR/
+- $MYTHOS_CONFIG_DIR/UTIL/
+- $MYTHOS_CONFIG_DIR/
+
+This commands provides a concise method to check for each of these dirs.

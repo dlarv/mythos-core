@@ -17,3 +17,7 @@ path = "src/charon/bin.rs"
 [[bin]]
 name = "mythos-conf"
 path = "src/utils/mythos-conf.rs"
+
+[[bin]]
+name = "mythos-args"
+path = "src/utils/mythos-args.rs"
