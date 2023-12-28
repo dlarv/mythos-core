@@ -1,5 +1,6 @@
 charon $B 755o
-data/print-mythos-dirs.sh $B 755oe
+#data/print-mythos-dirs.sh $B 755oe
 #data/mythos-uninstall.sh $B 755oe
 target/debug/mythos-conf $B 755o
+data/mythos-dirs.sh $B 755oe
 
