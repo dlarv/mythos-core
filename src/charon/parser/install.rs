@@ -1,5 +1,5 @@
 use crate::parser::*;
-use std::{path::PathBuf, os::unix::prelude::PermissionsExt, fs};
+use std::{path::PathBuf, os::unix::prelude::PermissionsExt};
 use glob::glob;
 
 // Structs

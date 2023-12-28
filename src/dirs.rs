@@ -111,6 +111,19 @@ fn get_default_dir(dir_name: MythosDir) -> String {
     }.into();
 }
 
+pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf> {
+    return match shortcut.trim_start_matches("$").to_uppercase().as_str() {
+        "A" | "ALIAS" => get_dir(MythosDir::Alias, util_name),
+        "B" | "BIN" => get_dir(MythosDir::Bin, util_name),
+        "C" | "CONFIG" => get_dir(MythosDir::Config, util_name),
+        "D" | "DATA" => get_dir(MythosDir::Data, util_name),
+        "LB" | "LIB" => get_dir(MythosDir::Lib, util_name),
+        "LC" | "LCONFIG" | "LOCALCONFIG" => get_dir(MythosDir::LocalConfig, util_name),
+        "LD" | "LDATA" | "LOCALDATA" => get_dir(MythosDir::LocalData, util_name),
+        "HOME" | "~" => get_home(),
+        _ => None
+    }
+}
 #[cfg(test)]
 mod tests {
     #![allow(warnings)]

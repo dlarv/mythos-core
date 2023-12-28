@@ -1,6 +1,6 @@
 pub mod install;
 use std::path::PathBuf;
-use mythos_core::dirs;
+use mythos_core::dirs::expand_mythos_shortcut;
 
 #[derive(Debug)]
 pub enum InstallAction {
@@ -26,19 +26,6 @@ pub struct Opts {
     pub copy_dot_files: bool,
     pub perms: u32,
     pub overwrite: bool,
-}
-pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf> {
-    return match shortcut.trim_start_matches("$"){
-        "A" | "ALIAS" => dirs::get_dir(dirs::MythosDir::Alias, util_name),
-        "B" | "BIN" => dirs::get_dir(dirs::MythosDir::Bin, util_name),
-        "C" | "CONFIG" => dirs::get_dir(dirs::MythosDir::Config, util_name),
-        "D" | "DATA" => dirs::get_dir(dirs::MythosDir::Data, util_name),
-        "LB" | "LIB" => dirs::get_dir(dirs::MythosDir::Lib, util_name),
-        "LC" | "LCONFIG" | "LOCALCONFIG" => dirs::get_dir(dirs::MythosDir::LocalConfig, util_name),
-        "LD" | "LDATA" | "LOCALDATA" => dirs::get_dir(dirs::MythosDir::LocalData, util_name),
-        "HOME" | "~" => dirs::get_home(),
-        _ => None
-    }
 }
 pub fn create_util_dir(root: PathBuf, util_name: &str, dry_run: bool) -> Result<InstallDir, String> {
     let path = root.join(util_name);
