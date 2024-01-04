@@ -77,7 +77,7 @@ impl MythosConfig {
                 let tab: String = val.into_iter().map(|x| format!("{}:{}", x.0, x.1)).collect::<Vec<String>>().join(" ");
                 Some(tab)
             },
-            None => todo!(),
+            None => Some("".into()),
         }
     }
 

@@ -3,4 +3,5 @@ charon $B 755o
 #data/mythos-uninstall.sh $B 755oe
 target/debug/mythos-conf $B 755o
 data/mythos-dirs.sh $B 755oe
+target/debug/mythos-args $B 755o
 
