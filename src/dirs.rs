@@ -96,7 +96,7 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
     }
 
     // HOTFIX: /bin shouldn't have any subdirs
-    if matches!(MythosDir::Bin, dir_name) {
+    if MythosDir::Bin == dir_name {
         return path.to_owned();
     }
 
