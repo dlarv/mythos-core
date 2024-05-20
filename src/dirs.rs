@@ -95,6 +95,11 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
         return path.to_owned();
     }
 
+    // HOTFIX: /bin shouldn't have any subdirs
+    if matches!(MythosDir::Bin, dir_name) {
+        return path.to_owned();
+    }
+
     // Append util to path
     return path.join(util_name);
 }
