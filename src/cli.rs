@@ -20,6 +20,7 @@ pub fn get_cli_input(msg: &str) -> String {
     let mut input = String::new();
 
     stdin().read_line(&mut input).expect("Could not read user input");
+    println!();
     return input.trim().into();
 }
 

@@ -41,9 +41,9 @@ pub fn get_home() -> Option<PathBuf> {
     return Some(PathBuf::from(output));
 }
 
-// Returns MYTHOS_DIR/util_name 
-// Path can point to a file or dir
 pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
+    //! Returns MYTHOS_DIR/util_name 
+    //! Path can point to a file or dir
     let mut path = get_path(dir_name, util_name);
     if path.exists() {
         return Some(path);
@@ -55,9 +55,9 @@ pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
     return None;
 }
 
-// Create directory if it does not exist. 
-// Return error if directory could not be created and DNE
 pub fn make_dir(dir_name: MythosDir, util_name: &str) -> Result<PathBuf, std::io::Error> {
+    //! Create directory if it does not exist. 
+    //! Return error if directory could not be created and DNE
     let path = get_path(dir_name, util_name);
     
     // create_dir_all fails if dir already exists or user doesn't have permissions
