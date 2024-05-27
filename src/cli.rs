@@ -23,6 +23,26 @@ pub fn get_cli_input(msg: &str) -> String {
     println!();
     return input.trim().into();
 }
+pub fn get_user_permission(assume_yes: bool, msg: &str) -> bool{
+    //! Get yes/no input from user.
+    //! Yes is considered default.
+    //! "\nY/n: " is appended to msg.
+    loop {
+        if assume_yes {
+            println!("{msg}\nY/n: Y");
+            return true;
+        }
+
+        let input = get_cli_input("{msg}\nY/n: ");
+        if ["n", "no"].contains(&input.as_str()) {
+            return false;
+        }
+        if ["y", "yes", "\n", ""].contains(&input.as_str()) {
+            return true;
+        }
+        eprintln!("Invalid input.");
+    }
+}
 
 #[cfg(test)]
 mod tests {
