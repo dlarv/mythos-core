@@ -33,7 +33,7 @@ pub fn get_user_permission(assume_yes: bool, msg: &str) -> bool{
             return true;
         }
 
-        let input = get_cli_input("{msg}\nY/n: ");
+        let input = get_cli_input(&format!("{msg}\nY/n: "));
         if ["n", "no"].contains(&input.as_str()) {
             return false;
         }
