@@ -18,7 +18,7 @@ use std::env;
 use duct::cmd;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
-pub enum MythosDir { Config, Data, Bin, Lib, Alias, LocalData, LocalConfig }
+pub enum MythosDir { Config, Data, Bin, Lib, Alias, LocalData, LocalConfig, Log }
 
 // Returns home diretory of $SUDO_USER
 pub fn get_home() -> Option<PathBuf> {
@@ -77,7 +77,8 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
 		MythosDir::Lib => "MYTHOS_LIB_DIR", 
 		MythosDir::LocalConfig => "MYTHOS_LOCAL_CONFIG_DIR", 
 		MythosDir::LocalData => "MYTHOS_LOCAL_DATA_DIR", 
-		MythosDir::Alias => "MYTHOS_ALIAS_DIR"
+		MythosDir::Alias => "MYTHOS_ALIAS_DIR",
+        MythosDir::Log => "MYTHOS_LOG_DIR",
     };
 
     // Get base path
@@ -112,7 +113,8 @@ fn get_default_dir(dir_name: MythosDir) -> String {
 		MythosDir::Lib => "/usr/lib/mythos", 
 		MythosDir::LocalConfig => "~/.config/mythos",
 		MythosDir::LocalData => "~/.local/share/mythos",
-		MythosDir::Alias => "/etc/profile.d"
+		MythosDir::Alias => "/etc/profile.d",
+        MythosDir::Log => "~/.local/share/mythos/logs",
     }.into();
 }
 
@@ -125,6 +127,7 @@ pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf
         "LB" | "LIB" => get_dir(MythosDir::Lib, util_name),
         "LC" | "LCONFIG" | "LOCALCONFIG" => get_dir(MythosDir::LocalConfig, util_name),
         "LD" | "LDATA" | "LOCALDATA" => get_dir(MythosDir::LocalData, util_name),
+        "LO" | "LOG" => get_dir(MythosDir::Log, util_name),
         "HOME" | "~" => get_home(),
         _ => None
     }

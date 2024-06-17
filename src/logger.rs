@@ -1,10 +1,15 @@
-static mut UTIL_ID: &str = "MYTHOS";
+use std::{fs::{File, OpenOptions}, io::{BufWriter, Error, Write}, path::PathBuf};
+use std::cell::RefCell;
+use crate::dirs::{self, MythosDir};
+
 
 #[macro_export]
 macro_rules! printinfo {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        println!("{}: {}", get_logger_id(), res);
+        mythos_core::logger::info(&res);
+        println!("{}", res);
+
     }}
 }
 
@@ -12,21 +17,24 @@ macro_rules! printinfo {
 macro_rules! printwarn {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        eprintln!("{} (Warning): {}", get_logger_id(), res);
+        mythos_core::logger::warn(&res);
+        eprintln!("Warn: {}", res);
     }}
 }
 #[macro_export]
 macro_rules! printerror {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        eprintln!("{} (Error): {}", get_logger_id(), res);
+        mythos_core::logger::error(&res);
+        eprintln!("Error: {}", res);
     }}
 }
 #[macro_export]
 macro_rules! printfatal {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        eprintln!("{} (Fatal Error): {}", get_logger_id(), res);
+        mythos_core::logger::fatal(&res);
+        eprintln!("Fatal: {}", res);
         std::process::exit(1);
     }}
 }
@@ -34,18 +42,77 @@ macro_rules! printfatal {
 macro_rules! fatalmsg{
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
-        format!("{} (Fatal): {}", get_logger_id(), res)
+        format!("Fatal: {}", res)
     }}
 }
 
+// Singlethreaded access to global logger.
+thread_local!(static LOGGER: RefCell<Logger> = RefCell::new(Logger::new("MYTHOS").unwrap()));
 
-pub fn set_logger_id(util_id: &'static str) {
-    unsafe {
-        UTIL_ID = util_id;
+/// Change the id assigned to the logger. Default is MYTHOS.
+pub fn set_id(id: &str) -> Result<(), Error> {
+    let logger = Logger::new(id)?;
+    LOGGER.with(|log| *log.borrow_mut() = logger);
+    return Ok(());
+}
+
+pub fn info(msg: &str) -> String {
+    LOGGER.with(|logger| logger.borrow_mut().write(msg, LogLevel::Info))
+}
+pub fn warn(msg: &str) -> String {
+    LOGGER.with(|logger| logger.borrow_mut().write(msg, LogLevel::Warn))
+}
+pub fn error(msg: &str) -> String {
+    LOGGER.with(|logger| logger.borrow_mut().write(msg, LogLevel::Error))
+}
+pub fn fatal(msg: &str) -> String {
+    LOGGER.with(|logger| logger.borrow_mut().write(msg, LogLevel::Fatal))
+}
+
+
+#[derive(Debug)]
+pub enum LogLevel { Info, Warn, Error, Fatal }
+
+/// Writes to log file.
+struct Logger {
+    id: String,
+    writer: BufWriter<File>,
+}
+
+impl Logger {
+    pub fn new(id: &str) -> Result<Logger, Error> {
+        // Automatically make log directory, if dne.
+        let path = dirs::make_dir(MythosDir::Log, &id.to_lowercase())?;
+
+        // Debug and release versions should have different files.
+        let file_name = if cfg!(debug_assertions) {
+            PathBuf::from("debug.log")
+        } else {
+            PathBuf::from("log")
+        };
+        let file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(path.join(file_name))?;
+
+        return Ok(Logger {
+            id: id.to_string(),
+            writer: BufWriter::new(file),
+        });
+    }
+    pub fn write(&mut self, msg: &str, level: LogLevel) -> String {
+        let timestamp = chrono::Local::now();
+        let msg = format!("{timestamp} {level:#?}: {msg}");
+        let _ = self.writer.write(&msg.clone().into_bytes());
+        return msg.to_string();
     }
 }
-pub fn get_logger_id() -> String {
-    unsafe {
-        return UTIL_ID.to_string();
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_logger() {
+        let _ = super::set_id("TEST");
+        super::info("Test entry");
     }
 }

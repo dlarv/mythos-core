@@ -4,15 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chrono = "0.4.38"
 duct = "0.13.6"
 glob = "0.3.1"
 serde = "1.0.189"
 serde_derive = "1.0.189"
 toml = "0.8.2"
-
-[[bin]]
-name = "charon"
-path = "src/charon/bin.rs"
 
 [[bin]]
 name = "mythos-conf"
