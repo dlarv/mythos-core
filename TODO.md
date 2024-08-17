@@ -1,3 +1,3 @@
-- [ ] Logger (remove weirdly formatted errors e.g. "(UTIL NAME warn)"
-- [ ] Logger save to log file based on logger id.
-- [ ] Logger verbosity levels?
+- [x] Logger (remove weirdly formatted errors e.g. "(UTIL NAME warn)"
+- [x] Logger save to log file based on logger id.
+- [x] Logger verbosity levels?

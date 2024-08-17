@@ -18,7 +18,7 @@ macro_rules! printwarn {
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
         mythos_core::logger::warn(&res);
-        eprintln!("Warn: {}", res);
+        eprintln!("Warning: {}", res);
     }}
 }
 #[macro_export]
