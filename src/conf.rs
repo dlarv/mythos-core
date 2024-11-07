@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use toml::{Table, Value};
 use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
@@ -147,6 +148,12 @@ impl MythosConfig {
             _ => None
         };
     }
+    pub fn get_typed_array<'a, T>(&self, key: &str) -> Vec<T> where T: Deserialize<'a> {
+        return match &self.0.get(key) {
+            Some(Value::Array(val)) => val.to_owned(),
+            _ => return vec![]
+        }.into_iter().filter_map(|x| x.try_into().ok()).collect()
+    }
     pub fn get_table(&self, key: &str, default_val: Table) -> Table {
         return match &self.0.get(key) {
             Some(Value::Table(val)) => val.to_owned(),
@@ -208,8 +215,10 @@ pub mod tests {
     #![allow(warnings)]
     use super::*;
     fn setup() {
-        std::env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
-        std::env::set_var("MYTHOS_LOCAL_CONFIG_DIR", "tests/lconfig");
+        unsafe {
+            std::env::set_var("MYTHOS_LOCAL_CONFIG_DIR", "tests/lconfig");
+            std::env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
+        }
     }
     #[test]
     pub fn get_file_with_implicit_ext() {
@@ -264,6 +273,15 @@ pub mod tests {
         assert_eq!(config.try_get_datetime("date2"), None);
         assert_eq!(config.try_get_array("array2"),  None);
         assert_eq!(config.try_get_table("table2"), None);
+    }
+    #[test]
+    pub fn get_typed_array() {
+        setup();
+        let config = MythosConfig::read_file("config_tester").unwrap();
+        let array = config.get_typed_array::<i64>("typed_array");
+        assert_eq!(array, vec![1, 2, 3]);
+        let array = config.get_typed_array::<String>("typed_array");
+        assert_eq!(array.len(), 0);
     }
 }
 

@@ -96,7 +96,7 @@ pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
         return path.to_owned();
     }
 
-    // HOTFIX: /bin shouldn't have any subdirs
+    // /bin shouldn't have any subdirs
     if MythosDir::Bin == dir_name {
         return path.to_owned();
     }
@@ -202,8 +202,8 @@ mod tests {
     #[test]
     fn make_dir_that_dne() {
         setup();
-        let path = make_dir(MythosDir::Bin, "mythos-test-file").unwrap();
-        assert_eq!(path, PathBuf::from("tests/bin/mythos-test-file"));
+        let path = make_dir(MythosDir::Config, "mythos-test-file").unwrap();
+        assert_eq!(path, PathBuf::from("tests/config/mythos-test-file"));
         remove_dir(path);
         
     }
