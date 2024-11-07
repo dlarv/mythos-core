@@ -41,6 +41,9 @@ impl MythosConfig {
             Err(_) => None
         };
     }
+    pub fn list_keys(&self) -> Vec<String> {
+        return self.0.keys().into_iter().map(|x| x.to_owned()).collect();
+    }
 
     pub fn get_subsection(&self, key: &str) -> Option<MythosConfig> {
         return match &self.0.get(key) {
@@ -152,7 +155,9 @@ impl MythosConfig {
         return match &self.0.get(key) {
             Some(Value::Array(val)) => val.to_owned(),
             _ => return vec![]
-        }.into_iter().filter_map(|x| x.try_into().ok()).collect()
+        }.into_iter()
+            .filter_map(|x| x.try_into().ok())
+            .collect()
     }
     pub fn get_table(&self, key: &str, default_val: Table) -> Table {
         return match &self.0.get(key) {
