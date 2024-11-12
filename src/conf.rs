@@ -1,4 +1,3 @@
-use serde::Deserialize;
 use toml::{Table, Value};
 use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
@@ -27,7 +26,6 @@ impl MythosConfig {
                 return None;
             }
         };
-
         let contents = match std::fs::read_to_string(path) {
             Ok(contents) => contents,
             Err(err) => {
@@ -151,7 +149,7 @@ impl MythosConfig {
             _ => None
         };
     }
-    pub fn get_typed_array<'a, T>(&self, key: &str) -> Vec<T> where T: Deserialize<'a> {
+    pub fn get_typed_array<'a, T>(&self, key: &str) -> Vec<T> where T: serde::Deserialize<'a> {
         return match &self.0.get(key) {
             Some(Value::Array(val)) => val.to_owned(),
             _ => return vec![]
@@ -199,10 +197,8 @@ fn clean_and_validate(path: PathBuf) -> Option<PathBuf> {
             if new_path.exists() {
                 return Some(new_path);
             }
-            else {
-                eprintln!("{}", err_msg);
-                return None;
-            }
+            eprintln!("{}", err_msg);
+            return None;
         }
         return Some(path);
     }
