@@ -132,7 +132,8 @@ mod test {
     }
     #[test]
     fn test_print_info() {
-        printinfo!(true, "Do print {}.", "this");
+        let val = true;
+        printinfo!(val, "Do print {}.", "this");
         printinfo!(false, "Do not print {}.", "this");
         // printinfo!(1 == 1, "Do print this.");
         printinfo!("This be valid");
