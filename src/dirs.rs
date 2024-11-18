@@ -143,23 +143,27 @@ mod tests {
     
     // Create environment to run tests
     fn setup() {
-        env::set_var("MYTHOS_ALIAS_DIR", "tests/alias");
-        env::set_var("MYTHOS_BIN_DIR", "tests/bin");
-        env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
-        env::set_var("MYTHOS_DATA_DIR", "tests/data");
-        env::set_var("MYTHOS_LIB_DIR", "tests/lib");
-        env::set_var("MYTHOS_LOCAL_CONFIG_DIR", "tests/lconfig");
-        env::set_var("MYTHOS_LOCAL_DATA_DIR", "tests/ldata");
+        unsafe {
+            env::set_var("MYTHOS_ALIAS_DIR", "tests/alias");
+            env::set_var("MYTHOS_BIN_DIR", "tests/bin");
+            env::set_var("MYTHOS_CONFIG_DIR", "tests/config");
+            env::set_var("MYTHOS_DATA_DIR", "tests/data");
+            env::set_var("MYTHOS_LIB_DIR", "tests/lib");
+            env::set_var("MYTHOS_LOCAL_CONFIG_DIR", "tests/lconfig");
+            env::set_var("MYTHOS_LOCAL_DATA_DIR", "tests/ldata");
+        }
     }
 
     #[test]
     fn test_get_home() {
         let actual = PathBuf::from(env::var("HOME").unwrap());
-        env::set_var("HOME", "noname");
-        env::set_var("SUDO_USER", env::var("USER").unwrap());
-        let dir = get_home().unwrap();
-        assert_eq!(dir, actual);
-        env::set_var("HOME", actual);
+        unsafe {
+            env::set_var("HOME", "noname");
+            env::set_var("SUDO_USER", env::var("USER").unwrap());
+            let dir = get_home().unwrap();
+            assert_eq!(dir, actual);
+            env::set_var("HOME", actual);
+        }
     }
 
     #[test]
