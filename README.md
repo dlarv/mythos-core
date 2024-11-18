@@ -64,7 +64,7 @@ Charon can read the install syntax as an uninstall file. Alternatively, the abso
 This file is saved at $MYTHOS_DATA_DIR/charon/$UTIL_NAME.charon. It is not recommended to alter the uninstall file. 
 
 ## General Utils 
-These are tools intended to be used from the command line.
+These are tools intended to be used from the command line, typically from bash.
 
 ### mythos-args
 A bash interface for mythos_core::cli::clean_cli_args(). 
