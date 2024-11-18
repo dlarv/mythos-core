@@ -1,10 +1,10 @@
 use std::io::{stdin, stdout, Write};
 
-pub fn clean_cli_args() -> Vec<String> {
+pub fn clean_cli_args() -> impl Iterator<Item = String> {
     return clean_args(std::env::args().into_iter().skip(1));
 }
 
-fn clean_args<I>(args: I) -> Vec<String> where I: Iterator<Item = String> {
+fn clean_args<I>(args: I) -> impl Iterator<Item = String> where I: Iterator<Item = String> {
     return args.flat_map(|x| {
         if x.starts_with("--") || !x.starts_with("-") {
             vec![x]
@@ -12,7 +12,7 @@ fn clean_args<I>(args: I) -> Vec<String> where I: Iterator<Item = String> {
         else {
             x.chars().into_iter().skip(1).map(|x| format!("-{}", x)).collect()
         }
-    }).collect();
+    });
 }
 pub fn get_cli_input(msg: &str) -> String {
     print!("{}", msg);
@@ -51,9 +51,11 @@ mod tests {
 
     #[test]
     fn clean_cli_args() {
-        assert_eq!(
-            clean_args(["-abc".into(), "--def".into(), "ghi".into()].into_iter()), 
-            vec!["-a", "-b", "-c", "--def", "ghi"]
-        );
+        let mut args = clean_args(["-abc".into(), "--def".into(), "ghi".into()].into_iter()); 
+        assert_eq!(args.next().unwrap(), "-a".to_string());
+        assert_eq!(args.next().unwrap(), "-b".to_string());
+        assert_eq!(args.next().unwrap(), "-c".to_string());
+        assert_eq!(args.next().unwrap(), "--def".to_string());
+        assert_eq!(args.next().unwrap(), "ghi".to_string());
     }
 }
