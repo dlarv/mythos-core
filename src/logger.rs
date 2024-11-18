@@ -5,12 +5,25 @@ use crate::dirs::{self, MythosDir};
 
 #[macro_export]
 macro_rules! printinfo {
+    ($switch:ident,$($arg:tt)*) => {{
+        if $switch {
+            let res = std::fmt::format(format_args!($($arg)*));
+            mythos_core::logger::info(&res);
+            println!("{}", res);
+        }
+    }};
     ($($arg:tt)*) => {{
         let res = std::fmt::format(format_args!($($arg)*));
         mythos_core::logger::info(&res);
         println!("{}", res);
-
-    }}
+    }};
+    // ($switch:expr,$($arg:tt)*) => {{
+    //     if $switch {
+    //         let res = std::fmt::format(format_args!($($arg)*));
+    //         mythos_core::logger::info(&res);
+    //         println!("{}", res);
+    //     }
+    // }};
 }
 
 #[macro_export]
@@ -102,7 +115,7 @@ impl Logger {
     }
     pub fn write(&mut self, msg: &str, level: LogLevel) -> String {
         let timestamp = chrono::Local::now();
-        let msg = format!("{timestamp} {level:#?}: {msg}");
+        let msg = format!("{timestamp} {level:#?}: {msg}\n");
         let _ = self.writer.write(&msg.clone().into_bytes());
         return msg.to_string();
     }
@@ -110,9 +123,20 @@ impl Logger {
 
 #[cfg(test)]
 mod test {
+    use crate as mythos_core;
+
     #[test]
     fn test_logger() {
         let _ = super::set_id("TEST");
         super::info("Test entry");
+    }
+    #[test]
+    fn test_print_info() {
+        printinfo!(true, "Do print {}.", "this");
+        printinfo!(false, "Do not print {}.", "this");
+        // printinfo!(1 == 1, "Do print this.");
+        printinfo!("This be valid");
+        printinfo!("This should be valid too {}.", 0);
+        // assert!(false);
     }
 }
