@@ -1,7 +1,8 @@
 use toml::{Table, Value};
 use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
-use crate::dirs;
+use crate as mythos_core;
+use crate::{dirs, printerror};
 
 const VALID_CONFIG_EXT: [&str; 3] = [
     "conf",
@@ -19,17 +20,17 @@ impl MythosConfig {
      * - "dir_name/file_name" -> "$MYTHOS_CONFIG_DIR/file_name{.ext}"
      */
     pub fn read_file(path_snippet: &str) -> Option<MythosConfig> {
-        let path = match try_get_file(path_snippet) {
+        let path = match try_get_file(path_snippet, false) {
             Some(path) => path,
             None => {
-                eprintln!("Could not find a config file for '{}'", path_snippet);
+                printerror!("Could not find a config file for '{}'", path_snippet);
                 return None;
             }
         };
         let contents = match std::fs::read_to_string(path) {
             Ok(contents) => contents,
             Err(err) => {
-                eprintln!("Could not read config file for '{}'. Error msg: {}", path_snippet, err.to_string());
+                printerror!("Could not read config file for '{}'. Error msg: {}", path_snippet, err.to_string());
                 return None;
             }
         };
@@ -38,6 +39,15 @@ impl MythosConfig {
             Ok(config) => Some(MythosConfig(config)),
             Err(_) => None
         };
+    }
+    pub fn open(path: &str) -> Option<MythosConfig> {
+        let path = match try_get_file(path, true) {
+            Some(_) => todo!(),
+            None => todo!(),
+        };
+        let table = Table::new();
+
+        return None;
     }
     pub fn list_keys(&self) -> Vec<String> {
         return self.0.keys().into_iter().map(|x| x.to_owned()).collect();
@@ -170,24 +180,21 @@ impl MythosConfig {
         };
     }
 }
-fn try_get_file(path: &str) -> Option<PathBuf> {
-    match clean_and_validate(dirs::get_path(dirs::MythosDir::LocalConfig, path)) {
+fn try_get_file(path: &str, allow_dir: bool) -> Option<PathBuf> {
+    match clean_and_validate(dirs::get_path(dirs::MythosDir::LocalConfig, path), allow_dir) {
         Some(path) => return Some(path),
         None => ()
     };
-    match clean_and_validate(dirs::get_path(dirs::MythosDir::Config, path)) {
-        Some(path) => return Some(path),
-        None => return None 
-    };
+    return clean_and_validate(dirs::get_path(dirs::MythosDir::Config, path), allow_dir);
 }
 /**
  * Caller can optionally omit file extension.
  * If {path} exists -> use that
  * Else -> try from list of valid extensions
  */
-fn clean_and_validate(path: PathBuf) -> Option<PathBuf> {
+fn clean_and_validate(path: PathBuf, allow_dir: bool) -> Option<PathBuf> {
     if path.exists() {
-        if path.is_dir() {
+        if !allow_dir && path.is_dir() {
             let err_msg = format!("'{:?}' is a directory", path);
 
             // Check CONFIG_DIR/util_name/config
@@ -222,27 +229,33 @@ pub mod tests {
         }
     }
     #[test]
+    pub fn try_open_dir_as_file() {
+        setup();
+        let dir = try_get_file("config_tester_dir", false);
+        assert!(dir.is_none());
+    }
+    #[test]
     pub fn get_file_with_implicit_ext() {
         setup();
         let root = dirs::get_path(dirs::MythosDir::Config, "config_tester");
-        assert_eq!(clean_and_validate(root), Some(PathBuf::from("tests/config/config_tester.conf")));
+        assert_eq!(clean_and_validate(root, false), Some(PathBuf::from("tests/config/config_tester.conf")));
     }
     #[test]
     pub fn get_file_with_no_ext() {
         setup();
         let root = dirs::get_path(dirs::MythosDir::Config, "arachne");
-        assert_eq!(clean_and_validate(root), Some(PathBuf::from("tests/config/arachne")));
+        assert_eq!(clean_and_validate(root, false), Some(PathBuf::from("tests/config/arachne")));
     }
     #[test]
     pub fn defaults_to_local_config() {
         setup();
-        let file = try_get_file("config_tester");
+        let file = try_get_file("config_tester", false);
         assert_eq!(file, Some(PathBuf::from("tests/lconfig/config_tester.toml")));
     }
     #[test]
     pub fn get_file_named_config() {
         setup();
-        let file = try_get_file("config_tester_dir");
+        let file = try_get_file("config_tester_dir", false);
         assert_eq!(file, Some(PathBuf::from("tests/lconfig/config_tester_dir/config")));
     }
     #[test]

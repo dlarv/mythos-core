@@ -10,6 +10,7 @@
  * MYTHOS_LIB_DIR            /usr/lib/mythos
  * MYTHOS_LOCAL_CONFIG_DIR   ~/.config/mythos
  * MYTHOS_LOCAL_DATA_DIR     ~/.local/share/mythos",
+ * MYTHOS_LOG_DIR           ~/.local/share/mythos/logs
  * 
  */
 use std::fs;
@@ -42,8 +43,8 @@ pub fn get_home() -> Option<PathBuf> {
 }
 
 pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
-    //! Returns MYTHOS_DIR/util_name 
-    //! Path can point to a file or dir
+    //! Returns MYTHOS_DIR/util_name, if it exists. 
+    //! Path can point to a file or dir.
     let mut path = get_path(dir_name, util_name);
     if path.exists() {
         return Some(path);
@@ -70,6 +71,8 @@ pub fn make_dir(dir_name: MythosDir, util_name: &str) -> Result<PathBuf, std::io
 }
 
 pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
+    //! Returns MYTHOS_DIR/util_name, even if path dne.
+    //! If util_name is empty, path will be redirected to mythos core.
     let env_var: &str = match &dir_name {
 		MythosDir::Config => "MYTHOS_CONFIG_DIR", 
 		MythosDir::Data => "MYTHOS_DATA_DIR", 
@@ -119,6 +122,18 @@ fn get_default_dir(dir_name: MythosDir) -> String {
 }
 
 pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf> {
+    //! Expands a simplified shortcut into the full path. e.g. MYTHOS_DIR/util_name.
+    //! shortcuts can be any of the following:
+    //! A | ALIAS       $MYTHOS_ALIAS_DIR
+    //! B | BIN         $MYTHOS_BIN_DIR
+    //! C | CONFIG      $MYTHOS_CONFIG_DIR
+    //! D | DATA        $MYTHOS_DATA_DIR
+    //! LB | LIB        $MYTHOS_LIB_DIR
+    //! LO | LOG        $MYTHOS_LOG_DIR
+    //! HOME | ~        $HOME
+    //! LC | LCONFIG | LOCALCONFIG      $MYTHOS_LOCAL_CONFIG_DIR
+    //! LD | LDATA   | LOCALDATA        $MYTHOS_LOCAL_DATA_DIR
+    //!
     return match shortcut.trim_start_matches("$").to_uppercase().as_str() {
         "A" | "ALIAS" => get_dir(MythosDir::Alias, util_name),
         "B" | "BIN" => get_dir(MythosDir::Bin, util_name),

@@ -1,6 +1,9 @@
 use std::io::{stdin, stdout, Write};
 
-pub fn clean_cli_args() -> impl Iterator<Item = String> {
+pub fn clean_cli_args() -> impl Iterator<Item = String> { 
+    //! Gets the list of args passed to util from std::env.
+    //! Args of the form '--arg' or 'arg' are unchanged.
+    //! Args of the form '-abc' are changed into '-a -b -c'.
     return clean_args(std::env::args().into_iter().skip(1));
 }
 
@@ -15,6 +18,7 @@ fn clean_args<I>(args: I) -> impl Iterator<Item = String> where I: Iterator<Item
     });
 }
 pub fn get_cli_input(msg: &str) -> String {
+    //! Gets user input from the console.
     print!("{}", msg);
     let _ = stdout().flush();
     let mut input = String::new();
