@@ -1,7 +1,7 @@
 use toml::{Table, Value};
 use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
-use crate as mythos_core;
+use crate::{self as mythos_core, printwarn};
 use crate::{dirs, printerror};
 
 const VALID_CONFIG_EXT: [&str; 3] = [
@@ -18,8 +18,11 @@ impl MythosConfig {
      * path_snippet: &str can be either:
      * - "util_name" -> "$MYTHOS_CONFIG_DIR/util_name{.ext}" || "$MYTHOS_CONFIG_DIR/util_name/config"
      * - "dir_name/file_name" -> "$MYTHOS_CONFIG_DIR/file_name{.ext}"
+     *
+     * This will always try to open a file, unlike open(...), which will treat directories as
+     * abstract config files.
      */
-    pub fn read_file(path_snippet: &str) -> Option<MythosConfig> {
+    pub fn open_file(path_snippet: &str) -> Option<MythosConfig> {
         let path = match try_get_file(path_snippet, false) {
             Some(path) => path,
             None => {
@@ -27,10 +30,13 @@ impl MythosConfig {
                 return None;
             }
         };
-        let contents = match std::fs::read_to_string(path) {
+        return MythosConfig::read_file(&path);
+    }
+    fn read_file(path: &PathBuf) -> Option<MythosConfig> {
+        let contents = match std::fs::read_to_string(&path) {
             Ok(contents) => contents,
             Err(err) => {
-                printerror!("Could not read config file for '{}'. Error msg: {}", path_snippet, err.to_string());
+                printerror!("Could not read config file for {:?}. Error msg: {}", path, err.to_string());
                 return None;
             }
         };
@@ -40,15 +46,47 @@ impl MythosConfig {
             Err(_) => None
         };
     }
-    pub fn open(path: &str) -> Option<MythosConfig> {
-        let path = match try_get_file(path, true) {
-            Some(_) => todo!(),
-            None => todo!(),
+    /**
+     * Tries to open config file.
+     * If path is a dir, it is treated as an abstract config file, where each file and subdirectory are entries.
+     * If path is a file, this method acts like MythosConfig::open_file(...).
+     */
+    pub fn open(path_snippet: &str) -> Option<MythosConfig> {
+        let path = try_get_file(path_snippet, true)?;
+        if path.is_file() { 
+            return MythosConfig::read_file(&path) 
         };
-        let table = Table::new();
 
-        return None;
+        return match MythosConfig::read_dir(&path) {
+            Ok(data) => Some(data),
+            Err(err) => {
+                printerror!("Error reading contents of path. \"{err}\".");
+                return None;
+            }
+        }
     }
+    fn read_dir(path: &PathBuf) -> Result<MythosConfig, std::io::Error> {
+        let contents = path.read_dir()?; 
+        let mut table: MythosConfig = MythosConfig(Table::new());
+
+        for item in contents {
+            let item = item?;
+            let path = item.path();
+            let key = path.file_stem().unwrap().to_str().unwrap();
+            if path.is_dir() {
+                table.extend(key, MythosConfig::read_dir(&path)?);
+            } else if let Some(file) = MythosConfig::read_file(&path) {
+                table.extend(key, file);
+            } else {
+                printwarn!("Tried to read {path:?} as config file. File was skipped.");
+            }
+        }
+        return Ok(table);
+    }
+    pub fn extend(&mut self, key: &str, other: MythosConfig) {
+        self.0.insert(key.to_string(), toml::Value::Table(other.0));
+    }
+
     pub fn list_keys(&self) -> Vec<String> {
         return self.0.keys().into_iter().map(|x| x.to_owned()).collect();
     }
@@ -181,11 +219,11 @@ impl MythosConfig {
     }
 }
 fn try_get_file(path: &str, allow_dir: bool) -> Option<PathBuf> {
-    match clean_and_validate(dirs::get_path(dirs::MythosDir::LocalConfig, path), allow_dir) {
+    match clean_and_validate(dirs::expand_path(dirs::MythosDir::LocalConfig, path), allow_dir) {
         Some(path) => return Some(path),
         None => ()
     };
-    return clean_and_validate(dirs::get_path(dirs::MythosDir::Config, path), allow_dir);
+    return clean_and_validate(dirs::expand_path(dirs::MythosDir::Config, path), allow_dir);
 }
 /**
  * Caller can optionally omit file extension.
@@ -215,6 +253,7 @@ fn clean_and_validate(path: PathBuf, allow_dir: bool) -> Option<PathBuf> {
             return Some(path.with_extension(ext));
         }
     }
+    printerror!("Path {path:?} does not exist and doesn't contain any config-like files.");
     return None;
 }
 
@@ -231,19 +270,40 @@ pub mod tests {
     #[test]
     pub fn try_open_dir_as_file() {
         setup();
-        let dir = try_get_file("config_tester_dir", false);
+        let dir = try_get_file("empty_dir", false);
         assert!(dir.is_none());
     }
     #[test]
-    pub fn get_file_with_implicit_ext() {
+    pub fn try_open_dir() {
         setup();
-        let root = dirs::get_path(dirs::MythosDir::Config, "config_tester");
-        assert_eq!(clean_and_validate(root, false), Some(PathBuf::from("tests/config/config_tester.conf")));
+        let conf = MythosConfig::open("abstract_config").unwrap();
+        let dict2 = conf.get_subsection("dict2").unwrap();
+        assert_eq!(dict2.try_get_integer("value"), Some(100));
+        assert_eq!(dict2.get_subsection("dict3").unwrap().try_get_integer("value"), Some(1000));
+        
+        let list1 = conf.get_subsection("list1").unwrap();
+        let dict1 = list1.get_subsection("list1_dict1").unwrap();
+        assert_eq!(dict1.try_get_integer("value"), Some(9));
+
+        let list2 = list1.get_subsection("list1_list2").unwrap();
+        let config = list2.get_subsection("config").unwrap();
+        assert_eq!(config.try_get_integer("value"), Some(11));
+
+        let list3 = list2.get_subsection("list1_list2_dict1").unwrap();
+        assert_eq!(list3.try_get_integer("value"), Some(1));
+    }
+    #[test]
+    pub fn try_open_file() {
+        setup();
+        let conf = MythosConfig::open("config_tester").unwrap();
+        assert_eq!(conf.try_get_integer("int"), Some(1));
     }
     #[test]
     pub fn get_file_with_no_ext() {
         setup();
-        let root = dirs::get_path(dirs::MythosDir::Config, "arachne");
+        let root = dirs::expand_path(dirs::MythosDir::Config, "config_tester");
+        assert_eq!(clean_and_validate(root, false), Some(PathBuf::from("tests/config/config_tester.conf")));
+        let root = dirs::expand_path(dirs::MythosDir::Config, "arachne");
         assert_eq!(clean_and_validate(root, false), Some(PathBuf::from("tests/config/arachne")));
     }
     #[test]
@@ -261,7 +321,7 @@ pub mod tests {
     #[test]
     pub fn get_value() {
         setup();
-        let config = MythosConfig::read_file("config_tester").unwrap();
+        let config = MythosConfig::open_file("config_tester").unwrap();
 
         assert_eq!(config.get_float("float", -1.0), 1.1);
         assert_eq!(config.get_string("string", ""), "string".to_string());
@@ -278,7 +338,7 @@ pub mod tests {
     #[test]
     pub fn try_get_value() {
         setup();
-        let config = MythosConfig::read_file("config_tester").unwrap();
+        let config = MythosConfig::open_file("config_tester").unwrap();
 
         assert_eq!(config.try_get_float("float2"), None);
         assert_eq!(config.try_get_string("string2"), None);
@@ -291,7 +351,7 @@ pub mod tests {
     #[test]
     pub fn get_typed_array() {
         setup();
-        let config = MythosConfig::read_file("config_tester").unwrap();
+        let config = MythosConfig::open_file("config_tester").unwrap();
         let array = config.get_typed_array::<i64>("typed_array");
         assert_eq!(array, vec![1, 2, 3]);
         let array = config.get_typed_array::<String>("typed_array");

@@ -9,7 +9,7 @@ fn main() {
 }
 
 fn get_value(util_name: &str, mut keys: Vec<String>) -> String {
-    let mut conf = match MythosConfig::read_file(&util_name) {
+    let mut conf = match MythosConfig::open_file(&util_name) {
         Some(conf) => conf,
         None => return "".into()
     };

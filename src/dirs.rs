@@ -42,14 +42,14 @@ pub fn get_home() -> Option<PathBuf> {
     return Some(PathBuf::from(output));
 }
 
-pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
+pub fn get_path(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
     //! Returns MYTHOS_DIR/util_name, if it exists. 
     //! Path can point to a file or dir.
-    let mut path = get_path(dir_name, util_name);
+    let mut path = expand_path(dir_name, util_name);
     if path.exists() {
         return Some(path);
     }
-    path = get_path(dir_name, "");
+    path = expand_path(dir_name, "");
     if path.exists() {
         return Some(path);
     }
@@ -59,7 +59,7 @@ pub fn get_dir(dir_name: MythosDir, util_name: &str) -> Option<PathBuf> {
 pub fn make_dir(dir_name: MythosDir, util_name: &str) -> Result<PathBuf, std::io::Error> {
     //! Create directory if it does not exist. 
     //! Return error if directory could not be created and DNE
-    let path = get_path(dir_name, util_name);
+    let path = expand_path(dir_name, util_name);
     
     // create_dir_all fails if dir already exists or user doesn't have permissions
     // This function should only throw an error for the latter
@@ -70,7 +70,7 @@ pub fn make_dir(dir_name: MythosDir, util_name: &str) -> Result<PathBuf, std::io
     return Ok(path);
 }
 
-pub fn get_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
+pub fn expand_path(dir_name: MythosDir, util_name: &str) -> PathBuf {
     //! Returns MYTHOS_DIR/util_name, even if path dne.
     //! If util_name is empty, path will be redirected to mythos core.
     let env_var: &str = match &dir_name {
@@ -135,14 +135,14 @@ pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf
     //! LD | LDATA   | LOCALDATA        $MYTHOS_LOCAL_DATA_DIR
     //!
     return match shortcut.trim_start_matches("$").to_uppercase().as_str() {
-        "A" | "ALIAS" => get_dir(MythosDir::Alias, util_name),
-        "B" | "BIN" => get_dir(MythosDir::Bin, util_name),
-        "C" | "CONFIG" => get_dir(MythosDir::Config, util_name),
-        "D" | "DATA" => get_dir(MythosDir::Data, util_name),
-        "LB" | "LIB" => get_dir(MythosDir::Lib, util_name),
-        "LC" | "LCONFIG" | "LOCALCONFIG" => get_dir(MythosDir::LocalConfig, util_name),
-        "LD" | "LDATA" | "LOCALDATA" => get_dir(MythosDir::LocalData, util_name),
-        "LO" | "LOG" => get_dir(MythosDir::Log, util_name),
+        "A" | "ALIAS" => get_path(MythosDir::Alias, util_name),
+        "B" | "BIN" => get_path(MythosDir::Bin, util_name),
+        "C" | "CONFIG" => get_path(MythosDir::Config, util_name),
+        "D" | "DATA" => get_path(MythosDir::Data, util_name),
+        "LB" | "LIB" => get_path(MythosDir::Lib, util_name),
+        "LC" | "LCONFIG" | "LOCALCONFIG" => get_path(MythosDir::LocalConfig, util_name),
+        "LD" | "LDATA" | "LOCALDATA" => get_path(MythosDir::LocalData, util_name),
+        "LO" | "LOG" => get_path(MythosDir::Log, util_name),
         "HOME" | "~" => get_home(),
         _ => None
     }
@@ -184,32 +184,32 @@ mod tests {
     #[test]
     fn check_test_env() {
         setup();
-        assert_eq!(super::get_path(MythosDir::Alias, "".into()), Path::new(&"tests/alias".to_string()));
-        assert_eq!(super::get_path(MythosDir::Bin, "".into()), Path::new(&"tests/bin".to_string()));
-        assert_eq!(super::get_path(MythosDir::Config, "".into()), Path::new(&"tests/config".to_string()));
-        assert_eq!(super::get_path(MythosDir::Data, "".into()), Path::new(&"tests/data".to_string()));
-        assert_eq!(super::get_path(MythosDir::Lib, "".into()), Path::new(&"tests/lib".to_string()));
-        assert_eq!(super::get_path(MythosDir::LocalData, "".into()), Path::new(&"tests/ldata".to_string()));
-        assert_eq!(super::get_path(MythosDir::LocalConfig, "".into()), Path::new(&"tests/lconfig".to_string()));
+        assert_eq!(super::expand_path(MythosDir::Alias, "".into()), Path::new(&"tests/alias".to_string()));
+        assert_eq!(super::expand_path(MythosDir::Bin, "".into()), Path::new(&"tests/bin".to_string()));
+        assert_eq!(super::expand_path(MythosDir::Config, "".into()), Path::new(&"tests/config".to_string()));
+        assert_eq!(super::expand_path(MythosDir::Data, "".into()), Path::new(&"tests/data".to_string()));
+        assert_eq!(super::expand_path(MythosDir::Lib, "".into()), Path::new(&"tests/lib".to_string()));
+        assert_eq!(super::expand_path(MythosDir::LocalData, "".into()), Path::new(&"tests/ldata".to_string()));
+        assert_eq!(super::expand_path(MythosDir::LocalConfig, "".into()), Path::new(&"tests/lconfig".to_string()));
         
     }
     #[test]
     fn test_get_path() {
         setup();
-        assert_eq!(get_path(MythosDir::Config, "arachne"), Path::new(&"tests/config/arachne".to_string()));
+        assert_eq!(expand_path(MythosDir::Config, "arachne"), Path::new(&"tests/config/arachne".to_string()));
         
     }
     #[test]
     fn get_dir_that_exists() {
         setup();
-        let path = get_dir(MythosDir::Config, "arachne");
+        let path = get_path(MythosDir::Config, "arachne");
         assert_eq!(path, Some(PathBuf::from(&"tests/config/arachne")));
         
     }
     #[test]
     fn get_dir_that_dne() {
         setup();
-        let path = get_dir(MythosDir::Config, "nonameutil");
+        let path = get_path(MythosDir::Config, "nonameutil");
         assert_eq!(path, Some(PathBuf::from("tests/config")));
     }
     #[test]
