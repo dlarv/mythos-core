@@ -135,14 +135,14 @@ pub fn expand_mythos_shortcut(shortcut: &str, util_name: &str) -> Option<PathBuf
     //! LD | LDATA   | LOCALDATA        $MYTHOS_LOCAL_DATA_DIR
     //!
     return match shortcut.trim_start_matches("$").to_uppercase().as_str() {
-        "A" | "ALIAS" => get_path(MythosDir::Alias, util_name),
-        "B" | "BIN" => get_path(MythosDir::Bin, util_name),
-        "C" | "CONFIG" => get_path(MythosDir::Config, util_name),
-        "D" | "DATA" => get_path(MythosDir::Data, util_name),
-        "LB" | "LIB" => get_path(MythosDir::Lib, util_name),
-        "LC" | "LCONFIG" | "LOCALCONFIG" => get_path(MythosDir::LocalConfig, util_name),
-        "LD" | "LDATA" | "LOCALDATA" => get_path(MythosDir::LocalData, util_name),
-        "LO" | "LOG" => get_path(MythosDir::Log, util_name),
+        "A" | "ALIAS" => Some(expand_path(MythosDir::Alias, util_name)),
+        "B" | "BIN" => Some(expand_path(MythosDir::Bin, util_name)),
+        "C" | "CONFIG" => Some(expand_path(MythosDir::Config, util_name)),
+        "D" | "DATA" => Some(expand_path(MythosDir::Data, util_name)),
+        "LB" | "LIB" => Some(expand_path(MythosDir::Lib, util_name)),
+        "LC" | "LCONFIG" | "LOCALCONFIG" => Some(expand_path(MythosDir::LocalConfig, util_name)),
+        "LD" | "LDATA" | "LOCALDATA" => Some(expand_path(MythosDir::LocalData, util_name)),
+        "LO" | "LOG" => Some(expand_path(MythosDir::Log, util_name)),
         "HOME" | "~" => get_home(),
         _ => None
     }
