@@ -6,6 +6,9 @@ pub fn clean_cli_args() -> impl Iterator<Item = String> {
     //! Args of the form '-abc' are changed into '-a -b -c'.
     return clean_args(std::env::args().into_iter().skip(1));
 }
+pub fn clear_terminal() {
+    print!("{}[2J", 27 as char);
+}
 
 fn clean_args<I>(args: I) -> impl Iterator<Item = String> where I: Iterator<Item = String> {
     return args.flat_map(|x| {
